@@ -1,3 +1,2 @@
-malvader.exe
-main.exe
-contas-poupanca.txt
+output/*.txt
+output/*.exe

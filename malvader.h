@@ -8,8 +8,6 @@
 #define MAX_PASSWORD_SIZE 4
 #define DEFAULT_SIZE 128
 #define MAX_CONTAS 100
-#define LINHA 190
-#define COLUNA 18
 
 // Declaração das funções
 void enviarMenuFuncionario();
@@ -308,7 +306,7 @@ void enviarMenuFuncionario()
     {
     case 1:
       printf("Iniciando processo de abertura de conta...\n");
-      // Enviar a mensagem com o menu de abertura de conta.
+      // Chamando a função que envia o menu de abertura de conta.
       enviarMenuAberturaConta();
       break;
 
@@ -346,48 +344,88 @@ void enviarMenuFuncionario()
       printf("Opcao invalida, tente novamente...");
     }
 
-    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
+    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima.
   } while (option <= 0 || option > 7);
+}
+
+// Função para gerar uma senha administrativa ao iniciar o processo de login.
+void criarSenhaAdminFuncionario()
+{
+  // Requisitando um arquivo para armazenar as senhas administrativas.
+  FILE *file = fopen("pass-admin.txt", "w");
+
+  // Verificando se acontecer alguma falha no arquivo.
+  if (file == NULL)
+  {
+    printf("Nao foi possivel ler ou criar o arquivo pass-admin.txt!");
+    system("pause");
+    exit(1);
+  }
+
+  // Definindo a variavel que vai receber a senha
+  char funcionarioPass[DEFAULT_SIZE];
+  // Definindo o conteúdo da variavel e a senha de administrador
+  strcpy(funcionarioPass, "administrador1");
+  fputs(funcionarioPass, file); // Salvando a STRING que contem a senha do funcionário
+
+  printf("Definindo a senha de administrador como \n%s\n\n", funcionarioPass);
+
+  // Fechando o arquivo de senhas.
+  fclose(file);
 }
 
 // Função para solicitar a senha do funcionario
 // Pendente: verificar se a senha do usuário está armazenada no arquivo de dados dos funcionarios
 void solicitarSenhaFuncionario()
 {
-  // Chamando o registro de funcionario
+  // Gerar a senha de administrador caso ela não exista.
+  criarSenhaAdminFuncionario();
+
+  // Declarando o registro (struct) de funcionários.
   struct Funcionario funcionario;
 
-  // Definindo a váriavel de senha que o usuário irá digitar
+  // Definindo a váriavel de senha que o usuário irá digitar.
   char password[DEFAULT_SIZE];
 
   // String copy: Adiciona a string no conteudo de "senhaFuncionario"
-  strcpy(funcionario.senhaFuncionario, "teste123"); // senha temporaria até os arquivos serem feitos
+  // strcpy(funcionario.senhaFuncionario, "teste123");
 
+  int acesso = 0;
   do
   {
-    printf("Digite a sua senha: \n");
-    // Recebe a senha digitada pelo usuario
-    scanf("%s", password);
+    // Bloqueando o acesso do funcionário até a inserção da senha.
+    acesso = 0;
 
-    // Faz a comparação (strcmp = STRING COMPARE) se a senha digitada pelo usuario é igual a senhaFuncionario
-    if (strcmp(password, funcionario.senhaFuncionario) != 0)
+    printf("Digite a sua senha: \n");
+    scanf("%s", password); // Não precisa do & por se tratar de uma String.
+
+    // Inicializa o arquivo de senhas administrativas no modo read.
+    FILE *adminFile = fopen("pass-admin.txt", "r");
+    char senhaAdmin[DEFAULT_SIZE];
+
+    // Faz a verificação se a senha digitada é válida como (Admin || Funcionário).
+    if (strcmp(password, fgets(senhaAdmin, DEFAULT_SIZE, adminFile)) != 0)
       printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
 
-    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionarios.
-    if (strcmp(password, funcionario.senhaFuncionario) == 0)
+    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários.
+    if (strcmp(password, fgets(senhaAdmin, DEFAULT_SIZE, adminFile)) == 0)
     {
-      // Envia a função do menu de funcionários.
+      // Liberando o acesso para o funcionário.
+      acesso = 1;
+
+      // Chamando a função para enviar o menu de funcionários.
       enviarMenuFuncionario();
     }
 
-    // Enquanto a senha não for igual ao que está armazenado, ele executa o código acima
-  } while (strcmp(password, funcionario.senhaFuncionario) != 0);
+    // Fecha o arquivo de senhas administrativas.
+    fclose(adminFile);
+  } while (acesso == 0);
 }
 
 // Função para enviar o menu principal
 void enviarMenuPrincipal()
 {
-  char malvader[COLUNA][LINHA] = {
+  char malvader[18][190] = {
       "MMMMMMMM               MMMMMMMM               AAA               LLLLLLLLLLL     VVVVVVVV           VVVVVVVV   AAA               DDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   ",
       "M:::::::M             M:::::::M              A:::A              L:::::::::L     V::::::V           V::::::V  A:::A              D::::::::::::DDD   E::::::::::::::::::::ER::::::::::::::::R  ",
       "M::::::::M           M::::::::M             A:::::A             L:::::::::L     V::::::V           V::::::V A:::::A             D:::::::::::::::DD E::::::::::::::::::::ER::::::RRRRRR:::::R ",
@@ -407,15 +445,14 @@ void enviarMenuPrincipal()
       "MMMMMMMM               MMMMMMMMAAAAAAA                   AAAAAAALLLLLLLLLLLLLLLLLLLLLLLL    VVVAAAAAAA                   AAAAAAADDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRR",
   };
 
-  // Pulando uma linha em cima do array
   printf("\n");
-  // Laço que envia linha por linha do array cima
-  for (int i = 0; i < COLUNA; i++)
+  // Laço de repetição que envia todas as linhas do array acima.
+  for (int i = 0; i < 18; i++)
   {
     printf("%s\n", malvader[i]);
   }
 
-  // variavel que vai receber a opcao do menu selecionada pelo usuario
+  // Variavel que vai receber a opção do menu que o usuário selecionar.
   int option;
   do
   {
@@ -424,20 +461,21 @@ void enviarMenuPrincipal()
     printf("1) Funcionario\n");
     printf("2) Cliente\n");
     printf("3) Sair do Programa\n\n");
-    // Armazena a opcao escolhida pelo usuario no endereco de memoria de option
+    // Armazena a opção escolhida pelo usuario no endereço de memória de option.
     scanf("%d", &option);
 
     switch (option)
     {
-    // Caso o usuario digite 1
     case 1:
+      // Chamando a função que solicita a senha para o funcionário ao acessar o menu.
       solicitarSenhaFuncionario();
       break;
 
-    // Caso o usuario digite algo que nao seja aceito ou nao exista
+    // Caso o usuario digite algo que não seja aceito ou que não exista.
     default:
       printf("Opcao invalida, tente novamente.");
     }
-    // O codigo sera executado enquanto a opcao nao for (1, 2 ou 3)
+
+    // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3).
   } while (option <= 0 || option > 3);
 }

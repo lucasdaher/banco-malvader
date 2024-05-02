@@ -294,7 +294,7 @@ void enviarMenuFuncionario()
   int option;
   do
   {
-    printf("\nMenu funcionario:\n\n");
+    printf("\nMenu funcionario:\n");
     printf("1) Abertura de Conta\n");
     printf("2) Encerramento de Conta\n");
     printf("3) Consultar Dados\n");
@@ -420,7 +420,7 @@ void enviarMenuPrincipal()
   do
   {
     printf("Bem-vindo(a) ao Malvader Bank!\n\n");
-    printf("Escolha uma opcao do menu principal: \n\n");
+    printf("Escolha uma opcao do menu principal: \n");
     printf("1) Funcionario\n");
     printf("2) Cliente\n");
     printf("3) Sair do Programa\n\n");

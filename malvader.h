@@ -4,15 +4,20 @@
 #include <string.h>
 #include <locale.h>
 
+// Definição de valores padrões
 #define MAX_PASSWORD_SIZE 4
 #define DEFAULT_SIZE 128
 #define MAX_CONTAS 100
+#define LINHA 190
+#define COLUNA 18
 
+// Declaração das funções
 void enviarMenuFuncionario();
 void enviarMenuAberturaConta();
 void salvarArquivoContaPoupanca();
 void enviarMenuPrincipal();
 
+// Declaração dos registros/structs dos usuários do sistema
 struct Data
 {
   int dia;
@@ -59,6 +64,7 @@ struct ContaPoupanca
 
 struct ContaCorrente
 {
+  int id;
   int agencia;
   int numeroDaConta;
   float limiteDaConta;
@@ -80,6 +86,7 @@ struct ContaCorrente
 struct ContaPoupanca contas[MAX_CONTAS];
 int totalContas = 0;
 
+// Função que recebe os dados da conta poupança que será criada
 void adicionarContaPoupanca(struct ContaPoupanca *conta)
 {
   // Adicionar um identificador unico para a conta do usuario
@@ -127,9 +134,11 @@ void adicionarContaPoupanca(struct ContaPoupanca *conta)
   printf("Digite uma senha para o cliente (somente numeros): \n");
   scanf(" %[^\n]", &conta->senhaDoClienteCp);
 
-  printf("\n\nRedirecionando voce de volta para o menu de funcionarios...\n");
+  printf("A conta foi criada com sucesso!\nVoltando para o menu de funcionarios.\n\n");
 
+  // Salva a conta do usuario em um arquivo
   salvarArquivoContaPoupanca();
+  // Envia novamente o menu de funcionarios ao final
   enviarMenuFuncionario();
 }
 
@@ -141,13 +150,17 @@ void salvarDadosPoupanca(struct ContaPoupanca *conta)
     printf("Nao foi possivel adicionar mais contas.");
 }
 
+// Função que irá salvar os dados do usuário em um arquivo
 void salvarArquivoContaPoupanca()
 {
+  // Criação e definição da leitura do arquivo
   FILE *file = fopen("contas-poupanca.txt", "w");
 
+  // Verificação para caso o arquivo não seja gerado ou lido
   if (file == NULL)
     printf("Nao foi possivel ler ou gerar o arquivo de contas do tipo poupanca.");
 
+  // Laço para registrar cada dado do usuário no arquivo de forma individual
   for (int i = 0; i < totalContas; i++)
   {
     fprintf(file, "ID: %d\n", contas[i].id);
@@ -167,9 +180,11 @@ void salvarArquivoContaPoupanca()
     fprintf(file, "Senha do Cliente: %s\n", contas[i].senhaDoClienteCp);
   }
 
+  // Fechando o arquivo ao final da execução
   fclose(file);
 }
 
+// Função que remove uma conta utilizando o seu ID exclusivo
 void removerContaPorId(int id)
 {
   struct ContaPoupanca contasTemp[MAX_CONTAS];
@@ -199,6 +214,7 @@ void removerContaPorId(int id)
   salvarArquivoContaPoupanca();
 }
 
+// Função para buscar os clientes por IDs
 void buscarClientePorId(int id)
 {
   for (int i = 0; i < totalContas; i++)
@@ -213,15 +229,19 @@ void buscarClientePorId(int id)
   printf("Cliente com ID %d nao encontrado.\n", id);
 }
 
+// Função para mostrar os dados de todas as contas criadas
 void mostrarContas()
 {
+  // Laço de repetição que percorre todas as contas criadas e envia os dados de cada uma
   for (int i = 0; i < totalContas; i++)
   {
+    // Solicitando os dados contidos dentro do vetor de contas
     printf("ID: %d\n", contas[i].id);
     printf("Agencia: %d\n", contas[i].agencia);
   }
 }
 
+// Realizar a criação da conta poupança.
 void criarContaPoupanca()
 {
   struct ContaPoupanca conta;
@@ -230,8 +250,10 @@ void criarContaPoupanca()
   salvarArquivoContaPoupanca();
 }
 
+// Função que envia o menu de abertura de conta
 void enviarMenuAberturaConta()
 {
+  // Variavel que vai armazenar a opcao desejada pelo usuario
   int option;
   do
   {
@@ -245,6 +267,7 @@ void enviarMenuAberturaConta()
     {
     case 1:
       printf("Iniciando processo de criacao de conta poupanca... \n\n");
+      // Envia o processo de criação de conta poupança para o funcionário
       criarContaPoupanca();
       break;
 
@@ -260,11 +283,14 @@ void enviarMenuAberturaConta()
     default:
       printf("Opcao invalida, tente novamente... \n");
     }
+    // Executa o código acima enquanto option não for (1,2 ou 3)
   } while (option <= 0 || option > 3);
 }
 
+// Função que envia o menu do funcionario
 void enviarMenuFuncionario()
 {
+  // Variavel que vai receber a opcao desejada pelo usuario
   int option;
   do
   {
@@ -281,7 +307,7 @@ void enviarMenuFuncionario()
     switch (option)
     {
     case 1:
-      printf("Iniciando processo de abertura de conta...");
+      printf("Iniciando processo de abertura de conta...\n");
       // Enviar a mensagem com o menu de abertura de conta.
       enviarMenuAberturaConta();
       break;
@@ -320,51 +346,98 @@ void enviarMenuFuncionario()
       printf("Opcao invalida, tente novamente...");
     }
 
+    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
   } while (option <= 0 || option > 7);
 }
 
+// Função para solicitar a senha do funcionario
+// Pendente: verificar se a senha do usuário está armazenada no arquivo de dados dos funcionarios
 void solicitarSenhaFuncionario()
 {
+  // Chamando o registro de funcionario
   struct Funcionario funcionario;
-  // Funcionario
+
+  // Definindo a váriavel de senha que o usuário irá digitar
   char password[DEFAULT_SIZE];
-  strcpy(funcionario.senhaFuncionario, "teste123");
+
+  // String copy: Adiciona a string no conteudo de "senhaFuncionario"
+  strcpy(funcionario.senhaFuncionario, "teste123"); // senha temporaria até os arquivos serem feitos
+
   do
   {
     printf("Digite a sua senha: \n");
+    // Recebe a senha digitada pelo usuario
     scanf("%s", password);
 
-    if (strcmp(password, funcionario.senhaFuncionario) != 0) // verifica se as duas strings são iguais
+    // Faz a comparação (strcmp = STRING COMPARE) se a senha digitada pelo usuario é igual a senhaFuncionario
+    if (strcmp(password, funcionario.senhaFuncionario) != 0)
       printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
 
+    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionarios.
     if (strcmp(password, funcionario.senhaFuncionario) == 0)
     {
+      // Envia a função do menu de funcionários.
       enviarMenuFuncionario();
     }
 
-  } while (strcmp(password, funcionario.senhaFuncionario) != 0); // strcmp = string compare
+    // Enquanto a senha não for igual ao que está armazenado, ele executa o código acima
+  } while (strcmp(password, funcionario.senhaFuncionario) != 0);
 }
 
+// Função para enviar o menu principal
 void enviarMenuPrincipal()
 {
+  char malvader[COLUNA][LINHA] = {
+      "MMMMMMMM               MMMMMMMM               AAA               LLLLLLLLLLL     VVVVVVVV           VVVVVVVV   AAA               DDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   ",
+      "M:::::::M             M:::::::M              A:::A              L:::::::::L     V::::::V           V::::::V  A:::A              D::::::::::::DDD   E::::::::::::::::::::ER::::::::::::::::R  ",
+      "M::::::::M           M::::::::M             A:::::A             L:::::::::L     V::::::V           V::::::V A:::::A             D:::::::::::::::DD E::::::::::::::::::::ER::::::RRRRRR:::::R ",
+      "M:::::::::M         M:::::::::M            A:::::::A            LL:::::::LL     V::::::V           V::::::VA:::::::A            DDD:::::DDDDD:::::DEE::::::EEEEEEEEE::::ERR:::::R     R:::::R",
+      "M::::::::::M       M::::::::::M           A:::::::::A             L:::::L        V:::::V           V:::::VA:::::::::A             D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
+      "M:::::::::::M     M:::::::::::M          A:::::A:::::A            L:::::L         V:::::V         V:::::VA:::::A:::::A            D:::::D     D:::::DE:::::E               R::::R     R:::::R",
+      "M:::::::M::::M   M::::M:::::::M         A:::::A A:::::A           L:::::L          V:::::V       V:::::VA:::::A A:::::A           D:::::D     D:::::DE::::::EEEEEEEEEE     R::::RRRRRR:::::R ",
+      "M::::::M M::::M M::::M M::::::M        A:::::A   A:::::A          L:::::L           V:::::V     V:::::VA:::::A   A:::::A          D:::::D     D:::::DE:::::::::::::::E     R:::::::::::::RR  ",
+      "M::::::M  M::::M::::M  M::::::M       A:::::A     A:::::A         L:::::L            V:::::V   V:::::VA:::::A     A:::::A         D:::::D     D:::::DE:::::::::::::::E     R::::RRRRRR:::::R ",
+      "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
+      "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
+      "M::::::M    M:::::M    M::::::M     A:::::::::::::::::::::A       L:::::L              V:::::V:::::VA:::::::::::::::::::::A       D:::::D     D:::::DE:::::E               R::::R     R:::::R",
+      "M::::::M     MMMMM     M::::::M    A:::::AAAAAAAAAAAAA:::::A      L:::::L         LLLLLLV:::::::::VA:::::AAAAAAAAAAAAA:::::A      D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
+      "M::::::M               M::::::M   A:::::A             A:::::A   LL:::::::LLLLLLLLL:::::L V:::::::VA:::::A             A:::::A   DDD:::::DDDDD:::::DEE::::::EEEEEEEE:::::ERR:::::R     R:::::R",
+      "M::::::M               M::::::M  A:::::A               A:::::A  L::::::::::::::::::::::L  V:::::VA:::::A               A:::::A  D:::::::::::::::DD E::::::::::::::::::::ER::::::R     R:::::R",
+      "M::::::M               M::::::M A:::::A                 A:::::A L::::::::::::::::::::::L   V:::VA:::::A                 A:::::A D::::::::::::DDD   E::::::::::::::::::::ER::::::R     R:::::R",
+      "MMMMMMMM               MMMMMMMMAAAAAAA                   AAAAAAALLLLLLLLLLLLLLLLLLLLLLLL    VVVAAAAAAA                   AAAAAAADDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRR",
+  };
+
+  // Pulando uma linha em cima do array
+  printf("\n");
+  // Laço que envia linha por linha do array cima
+  for (int i = 0; i < COLUNA; i++)
+  {
+    printf("%s\n", malvader[i]);
+  }
+
+  // variavel que vai receber a opcao do menu selecionada pelo usuario
   int option;
   do
   {
-    printf("Bem-vindo ao Banco Malvader!\n\n");
+    printf("Bem-vindo(a) ao Malvader Bank!\n\n");
     printf("Escolha uma opcao do menu principal: \n\n");
     printf("1) Funcionario\n");
     printf("2) Cliente\n");
     printf("3) Sair do Programa\n\n");
+    // Armazena a opcao escolhida pelo usuario no endereco de memoria de option
     scanf("%d", &option);
 
     switch (option)
     {
+    // Caso o usuario digite 1
     case 1:
       solicitarSenhaFuncionario();
       break;
 
+    // Caso o usuario digite algo que nao seja aceito ou nao exista
     default:
       printf("Opcao invalida, tente novamente.");
     }
+    // O codigo sera executado enquanto a opcao nao for (1, 2 ou 3)
   } while (option <= 0 || option > 3);
 }

@@ -97,7 +97,7 @@ void adicionarContaPoupanca(struct ContaPoupanca *conta)
   scanf("%d", &conta->numeroDaConta);
 
   printf("Digite o nome do cliente: \n");
-  scanf("%[^\n]", &conta->nomeCliente);
+  scanf(" %[^\n]", &conta->nomeCliente);
 
   printf("Digite o CPF (apenas numeros): \n");
   scanf("%d", &conta->cpf);
@@ -109,28 +109,28 @@ void adicionarContaPoupanca(struct ContaPoupanca *conta)
   scanf("%d", &conta->telefoneContato);
 
   printf("Digite o endereco do cliente: \n");
-  scanf("%[^\n]", &conta->endereco);
+  scanf(" %[^\n]", &conta->endereco);
 
   printf("Digite o CEP (apenas numeros): \n");
   scanf("%d", &conta->cep);
 
   printf("Digite o local: \n");
-  scanf("%[^\n]", &conta->local);
+  scanf(" %[^\n]", &conta->local);
 
   printf("Digite o numero da casa: \n");
   scanf("%d", &conta->numeroDaCasa);
 
   printf("Digite o bairro: \n");
-  scanf("%[^\n]", &conta->bairro);
+  scanf(" %[^\n]", &conta->bairro);
 
   printf("Digite a cidade: \n");
-  scanf("%[^\n]", &conta->cidade);
+  scanf(" %[^\n]", &conta->cidade);
 
   printf("Digite o estado: \n");
-  scanf("%[^\n]", &conta->estado);
+  scanf(" %[^\n]", &conta->estado);
 
   printf("Digite uma senha para o cliente (somente numeros): \n");
-  scanf("%[^\n]", &conta->senhaDoClienteCp);
+  scanf(" %[^\n]", &conta->senhaDoClienteCp);
 
   printf("A conta foi criada com sucesso!\nVoltando para o menu de funcionarios.\n\n");
 

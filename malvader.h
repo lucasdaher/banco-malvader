@@ -97,7 +97,7 @@ void adicionarContaPoupanca(struct ContaPoupanca *conta)
   scanf("%d", &conta->numeroDaConta);
 
   printf("Digite o nome do cliente: \n");
-  scanf(" %[^\n]", &conta->nomeCliente);
+  scanf("%[^\n]", &conta->nomeCliente);
 
   printf("Digite o CPF (apenas numeros): \n");
   scanf("%d", &conta->cpf);
@@ -109,34 +109,34 @@ void adicionarContaPoupanca(struct ContaPoupanca *conta)
   scanf("%d", &conta->telefoneContato);
 
   printf("Digite o endereco do cliente: \n");
-  scanf(" %[^\n]", &conta->endereco);
+  scanf("%[^\n]", &conta->endereco);
 
   printf("Digite o CEP (apenas numeros): \n");
   scanf("%d", &conta->cep);
 
   printf("Digite o local: \n");
-  scanf(" %[^\n]", &conta->local);
+  scanf("%[^\n]", &conta->local);
 
   printf("Digite o numero da casa: \n");
   scanf("%d", &conta->numeroDaCasa);
 
   printf("Digite o bairro: \n");
-  scanf(" %[^\n]", &conta->bairro);
+  scanf("%[^\n]", &conta->bairro);
 
   printf("Digite a cidade: \n");
-  scanf(" %[^\n]", &conta->cidade);
+  scanf("%[^\n]", &conta->cidade);
 
   printf("Digite o estado: \n");
-  scanf(" %[^\n]", &conta->estado);
+  scanf("%[^\n]", &conta->estado);
 
   printf("Digite uma senha para o cliente (somente numeros): \n");
-  scanf(" %[^\n]", &conta->senhaDoClienteCp);
+  scanf("%[^\n]", &conta->senhaDoClienteCp);
 
   printf("A conta foi criada com sucesso!\nVoltando para o menu de funcionarios.\n\n");
 
-  // Salva a conta do usuario em um arquivo
+  // Salva a conta do usuario em um arquivo.
   salvarArquivoContaPoupanca();
-  // Envia novamente o menu de funcionarios ao final
+  // Envia novamente o menu de funcionarios ao final.
   enviarMenuFuncionario();
 }
 
@@ -148,13 +148,13 @@ void salvarDadosPoupanca(struct ContaPoupanca *conta)
     printf("Nao foi possivel adicionar mais contas.");
 }
 
-// Função que irá salvar os dados do usuário em um arquivo
+// Função que irá salvar os dados do usuário em um arquivo.
 void salvarArquivoContaPoupanca()
 {
-  // Criação e definição da leitura do arquivo
+  // Criação e definição da leitura do arquivo.
   FILE *file = fopen("contas-poupanca.txt", "w");
 
-  // Verificação para caso o arquivo não seja gerado ou lido
+  // Verificação para caso o arquivo não seja gerado ou lido.
   if (file == NULL)
     printf("Nao foi possivel ler ou gerar o arquivo de contas do tipo poupanca.");
 
@@ -368,7 +368,7 @@ void criarSenhaAdminFuncionario()
   strcpy(funcionarioPass, "administrador1");
   fputs(funcionarioPass, file); // Salvando a STRING que contem a senha do funcionário
 
-  printf("Definindo a senha de administrador como \n%s\n\n", funcionarioPass);
+  // printf("Definindo a senha de administrador como \n%s\n\n", funcionarioPass);
 
   // Fechando o arquivo de senhas.
   fclose(file);
@@ -403,12 +403,18 @@ void solicitarSenhaFuncionario()
     FILE *adminFile = fopen("pass-admin.txt", "r");
     char senhaAdmin[DEFAULT_SIZE];
 
+    // Lê a senha do arquivo uma vez.
+    fgets(senhaAdmin, DEFAULT_SIZE, adminFile);
+
+    // Remove a quebra de linha do final da senha, se houver
+    senhaAdmin[strcspn(senhaAdmin, "\n")] = 0;
+
     // Faz a verificação se a senha digitada é válida como (Admin || Funcionário).
-    if (strcmp(password, fgets(senhaAdmin, DEFAULT_SIZE, adminFile)) != 0)
+    if (strcmp(password, senhaAdmin) != 0)
       printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
 
     // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários.
-    if (strcmp(password, fgets(senhaAdmin, DEFAULT_SIZE, adminFile)) == 0)
+    if (strcmp(password, senhaAdmin) == 0)
     {
       // Liberando o acesso para o funcionário.
       acesso = 1;

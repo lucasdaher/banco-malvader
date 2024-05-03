@@ -134,9 +134,9 @@ void adicionarContaPoupanca(struct ContaPoupanca *conta)
 
   printf("A conta foi criada com sucesso!\nVoltando para o menu de funcionarios.\n\n");
 
-  // Salva a conta do usuario em um arquivo.
+  // Salva a conta do usuario em um arquivo
   salvarArquivoContaPoupanca();
-  // Envia novamente o menu de funcionarios ao final.
+  // Envia novamente o menu de funcionarios ao final
   enviarMenuFuncionario();
 }
 
@@ -148,13 +148,13 @@ void salvarDadosPoupanca(struct ContaPoupanca *conta)
     printf("Nao foi possivel adicionar mais contas.");
 }
 
-// Função que irá salvar os dados do usuário em um arquivo.
+// Função que irá salvar os dados do usuário em um arquivo
 void salvarArquivoContaPoupanca()
 {
-  // Criação e definição da leitura do arquivo.
+  // Criação e definição da leitura do arquivo
   FILE *file = fopen("contas-poupanca.txt", "w");
 
-  // Verificação para caso o arquivo não seja gerado ou lido.
+  // Verificação para caso o arquivo não seja gerado ou lido
   if (file == NULL)
     printf("Nao foi possivel ler ou gerar o arquivo de contas do tipo poupanca.");
 
@@ -306,7 +306,7 @@ void enviarMenuFuncionario()
     {
     case 1:
       printf("Iniciando processo de abertura de conta...\n");
-      // Chamando a função que envia o menu de abertura de conta.
+      // Chamando a função que envia o menu de abertura de conta
       enviarMenuAberturaConta();
       break;
 
@@ -344,17 +344,17 @@ void enviarMenuFuncionario()
       printf("Opcao invalida, tente novamente...");
     }
 
-    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima.
+    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
   } while (option <= 0 || option > 7);
 }
 
-// Função para gerar uma senha administrativa ao iniciar o processo de login.
+// Função para gerar uma senha administrativa ao iniciar o processo de login
 void criarSenhaAdminFuncionario()
 {
-  // Requisitando um arquivo para armazenar as senhas administrativas.
+  // Requisitando um arquivo para armazenar as senhas administrativas
   FILE *file = fopen("pass-admin.txt", "w");
 
-  // Verificando se acontecer alguma falha no arquivo.
+  // Verificando se acontecer alguma falha no arquivo
   if (file == NULL)
   {
     printf("Nao foi possivel ler ou criar o arquivo pass-admin.txt!");
@@ -370,7 +370,7 @@ void criarSenhaAdminFuncionario()
 
   // printf("Definindo a senha de administrador como \n%s\n\n", funcionarioPass);
 
-  // Fechando o arquivo de senhas.
+  // Fechando o arquivo de senhas
   fclose(file);
 }
 
@@ -378,13 +378,13 @@ void criarSenhaAdminFuncionario()
 // Pendente: verificar se a senha do usuário está armazenada no arquivo de dados dos funcionarios
 void solicitarSenhaFuncionario()
 {
-  // Gerar a senha de administrador caso ela não exista.
+  // Gerar a senha de administrador caso ela não exista
   criarSenhaAdminFuncionario();
 
-  // Declarando o registro (struct) de funcionários.
+  // Declarando o registro (struct) de funcionários
   struct Funcionario funcionario;
 
-  // Definindo a váriavel de senha que o usuário irá digitar.
+  // Definindo a váriavel de senha que o usuário irá digitar
   char password[DEFAULT_SIZE];
 
   // String copy: Adiciona a string no conteudo de "senhaFuncionario"
@@ -393,13 +393,13 @@ void solicitarSenhaFuncionario()
   int acesso = 0;
   do
   {
-    // Bloqueando o acesso do funcionário até a inserção da senha.
+    // Bloqueando o acesso do funcionário até a inserção da senha
     acesso = 0;
 
     printf("Digite a sua senha: \n");
-    scanf("%s", password); // Não precisa do & por se tratar de uma String.
+    scanf("%s", password); // Não precisa do & por se tratar de uma String
 
-    // Inicializa o arquivo de senhas administrativas no modo read.
+    // Inicializa o arquivo de senhas administrativas no modo read
     FILE *adminFile = fopen("pass-admin.txt", "r");
     char senhaAdmin[DEFAULT_SIZE];
 
@@ -409,21 +409,21 @@ void solicitarSenhaFuncionario()
     // Remove a quebra de linha do final da senha, se houver
     senhaAdmin[strcspn(senhaAdmin, "\n")] = 0;
 
-    // Faz a verificação se a senha digitada é válida como (Admin || Funcionário).
+    // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
     if (strcmp(password, senhaAdmin) != 0)
       printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
 
-    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários.
+    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
     if (strcmp(password, senhaAdmin) == 0)
     {
-      // Liberando o acesso para o funcionário.
+      // Liberando o acesso para o funcionário
       acesso = 1;
 
-      // Chamando a função para enviar o menu de funcionários.
+      // Chamando a função para enviar o menu de funcionários
       enviarMenuFuncionario();
     }
 
-    // Fecha o arquivo de senhas administrativas.
+    // Fecha o arquivo de senhas administrativas
     fclose(adminFile);
   } while (acesso == 0);
 }
@@ -452,13 +452,13 @@ void enviarMenuPrincipal()
   };
 
   printf("\n");
-  // Laço de repetição que envia todas as linhas do array acima.
+  // Laço de repetição que envia todas as linhas do array acima
   for (int i = 0; i < 18; i++)
   {
     printf("%s\n", malvader[i]);
   }
 
-  // Variavel que vai receber a opção do menu que o usuário selecionar.
+  // Variavel que vai receber a opção do menu que o usuário selecionar
   int option;
   do
   {
@@ -467,21 +467,21 @@ void enviarMenuPrincipal()
     printf("1) Funcionario\n");
     printf("2) Cliente\n");
     printf("3) Sair do Programa\n\n");
-    // Armazena a opção escolhida pelo usuario no endereço de memória de option.
+    // Armazena a opção escolhida pelo usuario no endereço de memória de option
     scanf("%d", &option);
 
     switch (option)
     {
     case 1:
-      // Chamando a função que solicita a senha para o funcionário ao acessar o menu.
+      // Chamando a função que solicita a senha para o funcionário ao acessar o menu
       solicitarSenhaFuncionario();
       break;
 
-    // Caso o usuario digite algo que não seja aceito ou que não exista.
+    // Caso o usuario digite algo que não seja aceito ou que não exista
     default:
       printf("Opcao invalida, tente novamente.");
     }
 
-    // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3).
+    // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
   } while (option <= 0 || option > 3);
 }

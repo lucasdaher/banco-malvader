@@ -381,9 +381,6 @@ void solicitarSenhaFuncionario()
   // Gerar a senha de administrador caso ela não exista
   criarSenhaAdminFuncionario();
 
-  // Declarando o registro (struct) de funcionários
-  struct Funcionario funcionario;
-
   // Definindo a váriavel de senha que o usuário irá digitar
   char password[DEFAULT_SIZE];
 
@@ -475,6 +472,16 @@ void enviarMenuPrincipal()
     case 1:
       // Chamando a função que solicita a senha para o funcionário ao acessar o menu
       solicitarSenhaFuncionario();
+      break;
+
+    case 2:
+      // Enviar a autenticação da conta do cliente
+      break;
+
+    case 3:
+      printf("Saindo do programa...");
+      system("pause");
+      exit(1);
       break;
 
     // Caso o usuario digite algo que não seja aceito ou que não exista

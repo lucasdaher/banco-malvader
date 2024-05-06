@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <string.h>
 #include <locale.h>
+#include <stdbool.h>
 
 // Definição de valores padrões
 #define MAX_PASSWORD_SIZE 4
@@ -41,6 +42,7 @@ struct Funcionario
   char senhaFuncionario[MAX_PASSWORD_SIZE];
 };
 
+// Funções e Estruturas de Conta Poupança
 struct ContaPoupanca
 {
   int id;
@@ -59,6 +61,90 @@ struct ContaPoupanca
   char estado[DEFAULT_SIZE];
   char senhaDoClienteCp[MAX_PASSWORD_SIZE];
 };
+
+// bool write_data_poupanca(char *fileName, ContaPoupanca *data, int total);
+// ContaPoupanca *read_data_poupanca(char *fileName, int *total);
+
+// int createAccountPoupanca(void)
+// {
+//   ContaPoupanca *cp;
+//   if (write_data_poupanca("conta-p.bin", cp, 3))
+//     printf("Write Data OK.\n");
+//   else
+//   {
+//     printf("Error writing to file.\n");
+//     return 1;
+//   }
+
+//   int total = 0;
+//   ContaPoupanca *fileData;
+//   fileData = read_data_poupanca("conta-p.bin", &total);
+
+//   if (fileData == NULL)
+//   {
+//     printf("Error reading from file.\n");
+//     return 1;
+//   }
+
+//   printf("\nData read OK.\n\n");
+//   for (int i = 0; i < total; i++)
+//   {
+//     printf("Conta %s\n", i + 1);
+//     printf("Nome do Cliente %s", fileData[i].nomeCliente);
+//     printf("\n");
+//   }
+//   free(fileData);
+
+//   free(cp);
+// }
+
+// bool write_data_poupanca(char *fileName, ContaPoupanca *data, int total)
+// {
+//   FILE *file;
+
+//   file = fopen(fileName, "wb");
+
+//   if (file == NULL)
+//     return false;
+
+//   if (fwrite(&total, sizeof(int), 1, file) != 1)
+//     return false;
+
+//   if (fwrite(data, sizeof(ContaPoupanca), total, file) != total)
+//     return false;
+
+//   if (fclose(file) == EOF)
+//     return false;
+
+//   return true;
+// }
+
+// ContaPoupanca *read_data_poupanca(char *fileName, int *total)
+// {
+//   FILE *file;
+//   file = fopen(fileName, "rb");
+//   if (file == NULL)
+//     return NULL;
+
+//   if (fread(total, sizeof(int), 1, file) != 1)
+//     return NULL;
+
+//   ContaPoupanca *data = (ContaPoupanca *)malloc(sizeof(ContaPoupanca) * *total);
+
+//   if (fread(data, sizeof(ContaPoupanca), *total, file) != *total)
+//   {
+//     free(data);
+//     return NULL;
+//   }
+
+//   if (fclose(file) == EOF)
+//   {
+//     free(data);
+//     return NULL;
+//   }
+
+//   return data;
+// }
 
 struct ContaCorrente
 {
@@ -82,170 +168,177 @@ struct ContaCorrente
 };
 
 struct ContaPoupanca contas[MAX_CONTAS];
-int totalContas = 0;
+int totalContasP = 0;
 
-// Função que recebe os dados da conta poupança que será criada
-void adicionarContaPoupanca(struct ContaPoupanca *conta)
+void criarContaP()
 {
-  // Adicionar um identificador unico para a conta do usuario
-  conta->id = totalContas + 1;
-
-  printf("Digite a agencia: \n");
-  scanf("%d", &conta->agencia);
-
-  printf("Digite o numero da conta: \n");
-  scanf("%d", &conta->numeroDaConta);
-
-  printf("Digite o nome do cliente: \n");
-  scanf(" %[^\n]", &conta->nomeCliente);
-
-  printf("Digite o CPF (apenas numeros): \n");
-  scanf("%d", &conta->cpf);
-
-  printf("Digite a data de nascimento seguindo o formato > (12 07 2002) '12 de Julho de 2002': \n");
-  scanf("%d %d %d", &conta->nascimento.dia, &conta->nascimento.mes, &conta->nascimento.ano);
-
-  printf("Digite o telefone para contato (apenas numeros): \n");
-  scanf("%d", &conta->telefoneContato);
-
-  printf("Digite o endereco do cliente: \n");
-  scanf(" %[^\n]", &conta->endereco);
-
-  printf("Digite o CEP (apenas numeros): \n");
-  scanf("%d", &conta->cep);
-
-  printf("Digite o local: \n");
-  scanf(" %[^\n]", &conta->local);
-
-  printf("Digite o numero da casa: \n");
-  scanf("%d", &conta->numeroDaCasa);
-
-  printf("Digite o bairro: \n");
-  scanf(" %[^\n]", &conta->bairro);
-
-  printf("Digite a cidade: \n");
-  scanf(" %[^\n]", &conta->cidade);
-
-  printf("Digite o estado: \n");
-  scanf(" %[^\n]", &conta->estado);
-
-  printf("Digite uma senha para o cliente (somente numeros): \n");
-  scanf(" %[^\n]", &conta->senhaDoClienteCp);
-
-  printf("A conta foi criada com sucesso!\nVoltando para o menu de funcionarios.\n\n");
-
-  // Salva a conta do usuario em um arquivo
-  salvarArquivoContaPoupanca();
-  // Envia novamente o menu de funcionarios ao final
-  enviarMenuFuncionario();
-}
-
-void salvarDadosPoupanca(struct ContaPoupanca *conta)
-{
-  if (totalContas < MAX_CONTAS)
-    contas[totalContas++] = *conta;
-  else
-    printf("Nao foi possivel adicionar mais contas.");
-}
-
-// Função que irá salvar os dados do usuário em um arquivo
-void salvarArquivoContaPoupanca()
-{
-  // Criação e definição da leitura do arquivo
-  FILE *file = fopen("contas-poupanca.txt", "w");
-
-  // Verificação para caso o arquivo não seja gerado ou lido
-  if (file == NULL)
-    printf("Nao foi possivel ler ou gerar o arquivo de contas do tipo poupanca.");
-
-  // Laço para registrar cada dado do usuário no arquivo de forma individual
-  for (int i = 0; i < totalContas; i++)
+  if (totalContasP >= MAX_CONTAS)
   {
-    fprintf(file, "ID: %d\n", contas[i].id);
-    fprintf(file, "Agencia: %d\n", contas[i].agencia);
-    fprintf(file, "Numero da conta: %d\n", contas[i].numeroDaConta);
-    fprintf(file, "Nome Cliente: %s\n", contas[i].nomeCliente);
-    fprintf(file, "CPF: %d\n", contas[i].cpf);
-    fprintf(file, "Data de nascimento: %d/%d/%d\n", contas[i].nascimento.dia, contas[i].nascimento.mes, contas[i].nascimento.ano);
-    fprintf(file, "Telefone para contato: %d\n", contas[i].telefoneContato);
-    fprintf(file, "Endereco: %s\n", contas[i].endereco);
-    fprintf(file, "CEP: %d\n", contas[i].cep);
-    fprintf(file, "Local: %s\n", contas[i].local);
-    fprintf(file, "Numero da Casa: %d\n", contas[i].numeroDaCasa);
-    fprintf(file, "Bairro: %s\n", contas[i].bairro);
-    fprintf(file, "Cidade: %s\n", contas[i].cidade);
-    fprintf(file, "Estado: %s\n", contas[i].estado);
-    fprintf(file, "Senha do Cliente: %s\n", contas[i].senhaDoClienteCp);
-  }
-
-  // Fechando o arquivo ao final da execução
-  fclose(file);
-}
-
-// Função que remove uma conta utilizando o seu ID exclusivo
-void removerContaPorId(int id)
-{
-  struct ContaPoupanca contasTemp[MAX_CONTAS];
-  int totalContasTemp = 0;
-
-  // Copiar todas as contas, exceto a conta com o ID especificado, para contasTemp
-  for (int i = 0; i < totalContas; i++)
-  {
-    if (contas[i].id != id)
-    {
-      contasTemp[totalContasTemp++] = contas[i];
-    }
-  }
-
-  // Se o número de contas não mudou, a conta com o ID especificado não foi encontrada
-  if (totalContasTemp == totalContas)
-  {
-    printf("Conta com ID %d nao encontrada.\n", id);
+    printf("Não é possível adicionar mais contas. O limite foi atingido.\n");
     return;
   }
 
-  // Copiar contasTemp de volta para contas
-  memcpy(contas, contasTemp, totalContasTemp * sizeof(struct ContaPoupanca));
-  totalContas = totalContasTemp;
+  char nome[100];
+  int cpf;
+  int dia, mes, ano;
 
-  // Salvar as contas restantes de volta no arquivo
-  salvarArquivoContaPoupanca();
+  // Limpa o buffer de entrada
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF)
+  {
+  }
+
+  printf("Digite o nome do cliente: ");
+  fgets(nome, sizeof(nome), stdin);
+  nome[strcspn(nome, "\n")] = 0;
+
+  printf("Digite o CPF do cliente: ");
+  scanf("%d", &cpf);
+
+  printf("Digite a data de nascimento do cliente (dd mm aaaa): ");
+  scanf("%d %d %d", &dia, &mes, &ano);
+
+  // Copie os dados para a estrutura de conta
+  strncpy(contas[totalContasP].nomeCliente, nome, sizeof(contas[totalContasP].nomeCliente) - 1);
+  contas[totalContasP].cpf = cpf;
+  contas[totalContasP].nascimento.dia = dia;
+  contas[totalContasP].nascimento.mes = mes;
+  contas[totalContasP].nascimento.ano = ano;
+
+  totalContasP++;
+
+  FILE *file = fopen("conta-p.txt", "ab");
+
+  if (file == NULL)
+  {
+    printf("Não foi possível criar ou ler o arquivo.\n");
+    return;
+  }
+
+  for (int i = 0; i < totalContasP; i++)
+  {
+    fprintf(file, "Nome do cliente: %s\n", contas[i].nomeCliente);
+    fprintf(file, "CPF: %d\n", contas[i].cpf);
+    fprintf(file, "Data de nascimento: %d/%d/%d\n", contas[i].nascimento.dia, contas[i].nascimento.mes, contas[i].nascimento.ano);
+  }
+
+  printf("Conta criada com sucesso, voltando para o menu de funcionarios...");
+  enviarMenuFuncionario();
+
+  fclose(file);
 }
 
-// Função para buscar os clientes por IDs
-void buscarClientePorId(int id)
+void getContas()
 {
-  for (int i = 0; i < totalContas; i++)
+  FILE *file = fopen("conta-p.txt", "rb");
+  if (file == NULL)
   {
-    if (contas[i].id == id)
+    printf("Nao foi possivel abrir o arquivo. \n");
+    return;
+  }
+
+  totalContasP = 0;
+  while (fscanf(file, "%s %d %d %d %d %d\n", contas[totalContasP].nomeCliente, &contas[totalContasP].cpf,
+                &contas[totalContasP].nascimento.dia, &contas[totalContasP].nascimento.mes,
+                &contas[totalContasP].nascimento.ano, &contas[totalContasP].cpf) != EOF)
+  {
+    totalContasP++;
+  }
+}
+
+void pesquisarCliente(char *nome)
+{
+  for (int i = 0; i < totalContasP; i++)
+  {
+    if (strcmp(contas[i].nomeCliente, nome) == 0)
     {
-      printf("Nome do cliente: %s\n", contas[i].nomeCliente);
+      printf("Nome: %s\n", contas[i].nomeCliente);
+      printf("CPF: %d\n", contas[i].cpf);
+      printf("Data de Nascimento: %d/%d/%d\n", contas[i].nascimento.dia,
+             contas[i].nascimento.mes, contas[i].nascimento.ano);
+      printf("CPF: %d\n", contas[i].cpf);
       return;
     }
   }
 
-  printf("Cliente com ID %d nao encontrado.\n", id);
+  printf("Cliente não encontrado\n");
 }
 
-// Função para mostrar os dados de todas as contas criadas
-void mostrarContas()
+// Função que recebe os dados da conta poupança que será criada
+void criarContaPoupanca(struct ContaPoupanca *conta)
 {
-  // Laço de repetição que percorre todas as contas criadas e envia os dados de cada uma
-  for (int i = 0; i < totalContas; i++)
-  {
-    // Solicitando os dados contidos dentro do vetor de contas
-    printf("ID: %d\n", contas[i].id);
-    printf("Agencia: %d\n", contas[i].agencia);
-  }
-}
+  // Adicionar um identificador unico para a conta do usuario
+  conta->id = totalContasP + 1;
 
-// Realizar a criação da conta poupança.
-void criarContaPoupanca()
-{
-  struct ContaPoupanca conta;
-  adicionarContaPoupanca(&conta);
-  salvarDadosPoupanca(&conta);
-  salvarArquivoContaPoupanca();
+  // Requisitando o arquivo de contas
+  FILE *file = fopen("contas-poupanca.txt", "w");
+
+  if (file == NULL)
+    printf("O arquivo nao foi gerado corretamente ou nao pode ser lido.");
+
+  printf("Digite a agencia: \n");
+  scanf("%d", &conta->agencia);
+  fprintf(file, "Agencia: %d", conta->agencia);
+
+  printf("Digite o numero da conta: \n");
+  scanf("%d", &conta->numeroDaConta);
+  fprintf(file, "Numero da Conta: %d", conta->numeroDaConta);
+
+  printf("Digite o nome do cliente: \n");
+  scanf(" %[^\n]", &conta->nomeCliente);
+  fprintf(file, "Nome do Cliente: %d", conta->nomeCliente);
+
+  printf("Digite o CPF (apenas numeros): \n");
+  scanf("%d", &conta->cpf);
+  fprintf(file, "CPF: %d", conta->cpf);
+
+  printf("Digite a data de nascimento seguindo o formato (12 07 2002)\n");
+  scanf("%d %d %d", &conta->nascimento.dia, &conta->nascimento.mes, &conta->nascimento.ano);
+  fprintf(file, "Data de Nascimento: %d/%d/%d", conta->nascimento.dia, conta->nascimento.mes, conta->nascimento.ano);
+
+  printf("Digite o telefone para contato (apenas numeros): \n");
+  scanf("%d", &conta->telefoneContato);
+  fprintf(file, "Telefone Contato: %d", conta->telefoneContato);
+
+  printf("Digite o endereco do cliente: \n");
+  scanf(" %[^\n]", &conta->endereco);
+  fprintf(file, "Endereco: %d", conta->endereco);
+
+  printf("Digite o CEP (apenas numeros): \n");
+  scanf("%d", &conta->cep);
+  fprintf(file, "CEP: %d", conta->cep);
+
+  printf("Digite o local: \n");
+  scanf(" %[^\n]", &conta->local);
+  fprintf(file, "Local: %d", conta->local);
+
+  printf("Digite o numero da casa: \n");
+  scanf("%d", &conta->numeroDaCasa);
+  fprintf(file, "Numero da Casa: %d", conta->numeroDaCasa);
+
+  printf("Digite o bairro: \n");
+  scanf(" %[^\n]", &conta->bairro);
+  fprintf(file, "Bairro: %d", conta->bairro);
+
+  printf("Digite a cidade: \n");
+  scanf(" %[^\n]", &conta->cidade);
+  fprintf(file, "Cidade: %d", conta->cidade);
+
+  printf("Digite o estado: \n");
+  scanf(" %[^\n]", &conta->estado);
+  fprintf(file, "Estado: %d", conta->estado);
+
+  printf("Digite uma senha para o cliente (somente numeros): \n");
+  scanf(" %[^\n]", &conta->senhaDoClienteCp);
+  fprintf(file, "Senha do Cliente: %d", conta->senhaDoClienteCp);
+
+  printf("A conta foi criada com sucesso...\n");
+
+  // Fechando o arquivo de contas
+  fclose(file);
+
+  // Envia novamente o menu de funcionarios ao final
+  enviarMenuFuncionario();
 }
 
 // Função que envia o menu de abertura de conta
@@ -266,7 +359,7 @@ void enviarMenuAberturaConta()
     case 1:
       printf("Iniciando processo de criacao de conta poupanca... \n\n");
       // Envia o processo de criação de conta poupança para o funcionário
-      criarContaPoupanca();
+      criarContaP();
       break;
 
     case 2:
@@ -274,7 +367,6 @@ void enviarMenuAberturaConta()
 
     case 3:
       printf("Voltando para o menu do funcionario... \n");
-      system("pause");
       enviarMenuFuncionario();
       break;
 
@@ -292,7 +384,7 @@ void enviarMenuFuncionario()
   int option;
   do
   {
-    printf("\nMenu funcionario:\n");
+    printf("\n\nMenu funcionario:\n");
     printf("1) Abertura de Conta\n");
     printf("2) Encerramento de Conta\n");
     printf("3) Consultar Dados\n");
@@ -337,6 +429,7 @@ void enviarMenuFuncionario()
 
     case 7:
       printf("Saindo do programa... \n");
+      system("pause");
       exit(1);
       break;
 

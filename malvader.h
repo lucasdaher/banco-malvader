@@ -24,6 +24,17 @@ struct Data
   int ano;
 };
 
+struct Endereco
+{
+  char endereco[DEFAULT_SIZE];
+  int cep;
+  char local[DEFAULT_SIZE];
+  int numeroDaCasa;
+  char bairro[DEFAULT_SIZE];
+  char cidade[DEFAULT_SIZE];
+  char estado[DEFAULT_SIZE];
+};
+
 struct Funcionario
 {
   int codigoFuncionario;
@@ -32,14 +43,8 @@ struct Funcionario
   int cpf;
   struct Data nascimento;
   char telefoneContato[15];
-  char enderecoFuncionario[DEFAULT_SIZE];
-  char cep[9];
-  char local[DEFAULT_SIZE];
-  int numeroDaCasa;
-  char bairro[DEFAULT_SIZE];
-  char cidade[DEFAULT_SIZE];
-  char estado[DEFAULT_SIZE];
   char senhaFuncionario[MAX_PASSWORD_SIZE];
+  struct Endereco endereco;
 };
 
 // Funções e Estruturas de Conta Poupança
@@ -52,99 +57,9 @@ struct ContaPoupanca
   int cpf;
   struct Data nascimento;
   int telefoneContato;
-  char endereco[DEFAULT_SIZE];
-  int cep;
-  char local[DEFAULT_SIZE];
-  int numeroDaCasa;
-  char bairro[DEFAULT_SIZE];
-  char cidade[DEFAULT_SIZE];
-  char estado[DEFAULT_SIZE];
+  struct Endereco endereco;
   char senhaDoClienteCp[MAX_PASSWORD_SIZE];
 };
-
-// bool write_data_poupanca(char *fileName, ContaPoupanca *data, int total);
-// ContaPoupanca *read_data_poupanca(char *fileName, int *total);
-
-// int createAccountPoupanca(void)
-// {
-//   ContaPoupanca *cp;
-//   if (write_data_poupanca("conta-p.bin", cp, 3))
-//     printf("Write Data OK.\n");
-//   else
-//   {
-//     printf("Error writing to file.\n");
-//     return 1;
-//   }
-
-//   int total = 0;
-//   ContaPoupanca *fileData;
-//   fileData = read_data_poupanca("conta-p.bin", &total);
-
-//   if (fileData == NULL)
-//   {
-//     printf("Error reading from file.\n");
-//     return 1;
-//   }
-
-//   printf("\nData read OK.\n\n");
-//   for (int i = 0; i < total; i++)
-//   {
-//     printf("Conta %s\n", i + 1);
-//     printf("Nome do Cliente %s", fileData[i].nomeCliente);
-//     printf("\n");
-//   }
-//   free(fileData);
-
-//   free(cp);
-// }
-
-// bool write_data_poupanca(char *fileName, ContaPoupanca *data, int total)
-// {
-//   FILE *file;
-
-//   file = fopen(fileName, "wb");
-
-//   if (file == NULL)
-//     return false;
-
-//   if (fwrite(&total, sizeof(int), 1, file) != 1)
-//     return false;
-
-//   if (fwrite(data, sizeof(ContaPoupanca), total, file) != total)
-//     return false;
-
-//   if (fclose(file) == EOF)
-//     return false;
-
-//   return true;
-// }
-
-// ContaPoupanca *read_data_poupanca(char *fileName, int *total)
-// {
-//   FILE *file;
-//   file = fopen(fileName, "rb");
-//   if (file == NULL)
-//     return NULL;
-
-//   if (fread(total, sizeof(int), 1, file) != 1)
-//     return NULL;
-
-//   ContaPoupanca *data = (ContaPoupanca *)malloc(sizeof(ContaPoupanca) * *total);
-
-//   if (fread(data, sizeof(ContaPoupanca), *total, file) != *total)
-//   {
-//     free(data);
-//     return NULL;
-//   }
-
-//   if (fclose(file) == EOF)
-//   {
-//     free(data);
-//     return NULL;
-//   }
-
-//   return data;
-// }
 
 struct ContaCorrente
 {
@@ -305,28 +220,28 @@ void criarContaPoupanca(struct ContaPoupanca *conta)
   fprintf(file, "Endereco: %d", conta->endereco);
 
   printf("Digite o CEP (apenas numeros): \n");
-  scanf("%d", &conta->cep);
-  fprintf(file, "CEP: %d", conta->cep);
+  scanf("%d", &conta->endereco.cep);
+  fprintf(file, "CEP: %d", conta->endereco.cep);
 
   printf("Digite o local: \n");
-  scanf(" %[^\n]", &conta->local);
-  fprintf(file, "Local: %d", conta->local);
+  scanf(" %[^\n]", &conta->endereco.local);
+  fprintf(file, "Local: %d", conta->endereco.local);
 
   printf("Digite o numero da casa: \n");
-  scanf("%d", &conta->numeroDaCasa);
-  fprintf(file, "Numero da Casa: %d", conta->numeroDaCasa);
+  scanf("%d", &conta->endereco.numeroDaCasa);
+  fprintf(file, "Numero da Casa: %d", conta->endereco.numeroDaCasa);
 
   printf("Digite o bairro: \n");
-  scanf(" %[^\n]", &conta->bairro);
-  fprintf(file, "Bairro: %d", conta->bairro);
+  scanf(" %[^\n]", &conta->endereco.bairro);
+  fprintf(file, "Bairro: %d", conta->endereco.bairro);
 
   printf("Digite a cidade: \n");
-  scanf(" %[^\n]", &conta->cidade);
-  fprintf(file, "Cidade: %d", conta->cidade);
+  scanf(" %[^\n]", &conta->endereco.cidade);
+  fprintf(file, "Cidade: %d", conta->endereco.cidade);
 
   printf("Digite o estado: \n");
-  scanf(" %[^\n]", &conta->estado);
-  fprintf(file, "Estado: %d", conta->estado);
+  scanf(" %[^\n]", &conta->endereco.estado);
+  fprintf(file, "Estado: %d", conta->endereco.estado);
 
   printf("Digite uma senha para o cliente (somente numeros): \n");
   scanf(" %[^\n]", &conta->senhaDoClienteCp);

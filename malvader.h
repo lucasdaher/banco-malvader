@@ -3,7 +3,6 @@
 #include <conio.h>
 #include <string.h>
 #include <locale.h>
-#include <stdbool.h>
 
 // Definição de valores padrões
 #define MAX_PASSWORD_SIZE 4
@@ -12,12 +11,13 @@
 #define MAX_CC_ACCOUNTS 15
 
 // Declaração das funções
+void visualizarContaPoupanca(struct ContaPoupanca cps[], int numContas, char nomeCliente[]);
+void removerContaPoupanca(struct ContaPoupanca cps[], int *numContas);
+void cadastrarContaPoupanca(struct ContaPoupanca cps[], int *numContas);
 void enviarMenuFuncionario();
 void enviarMenuAberturaConta();
-void salvarArquivoContaPoupanca();
 void enviarMenuPrincipal();
 
-// Declaração dos registros/structs dos usuários do sistema
 struct Data
 {
   int dia;
@@ -85,6 +85,54 @@ struct ContaCorrente
 struct ContaPoupanca cps[MAX_CP_ACCOUNTS];
 int numContas = 0;
 
+// Função que visualiza os dados de uma conta poupança de um cliente
+void visualizarContaPoupanca(struct ContaPoupanca cps[], int numContas, char nomeCliente[])
+{
+  printf("Contas do cliente %s: \n", nomeCliente);
+  for (int i = 0; i < numContas; i++)
+  {
+    if (strcmp(cps[i].nomeCliente, nomeCliente) == 0)
+    {
+      printf("Conta %d - Saldo: R$0\n", cps[i].id); // adicionar saldo quando tiver o sistema feito
+    }
+  }
+}
+
+// Função que remove uma conta poupança de um cliente
+void removerContaPoupanca(struct ContaPoupanca cps[], int *numContas)
+{
+  if (*numContas == 0)
+  {
+    printf("Nao existem contas cadastradas. \n");
+    return;
+  }
+
+  int numeroConta;
+  printf("Digite o numero da conta que deseja remover:\n");
+  scanf("%d", &numeroConta);
+
+  int indiceConta = -1;
+  for (int i = 1; i < *numContas; i++)
+  {
+    if (cps[i].id == numeroConta)
+    {
+      indiceConta = i;
+      break;
+    }
+  }
+
+  if (indiceConta == -1)
+  {
+    printf("Conta com numero %d nao foi encontrada... \n", numeroConta);
+    return;
+  }
+
+  printf("Conta %d excluida com sucesso.\n", cps[indiceConta].id);
+  cps[indiceConta] = cps[(*numContas) - 1];
+  (*numContas)--;
+}
+
+// Função que efetua o cadastro de uma conta poupança
 void cadastrarContaPoupanca(struct ContaPoupanca cps[], int *numContas)
 {
   if (*numContas >= MAX_CP_ACCOUNTS)

@@ -5,7 +5,7 @@
 #include <locale.h>
 
 // Definição de valores padrões
-#define MAX_PASSWORD_SIZE 4
+#define MAX_PASSWORD_SIZE 6
 #define DEFAULT_SIZE 128
 #define MAX_CP_ACCOUNTS 15
 #define MAX_CC_ACCOUNTS 15

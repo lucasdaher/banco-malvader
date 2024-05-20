@@ -75,10 +75,13 @@ struct Funcionario {
     struct Endereco endereco;
 };
 
+int *numContas;
+
 // Função que realiza a validação da senha administrativa.
 int validarSenhaAdmin(char *typedPass) {
     // Definindo a senha padrão para administrador.
     const char *passAdmin = "adm";
+
     // Verificação se a senha digitada está correta.
     if (strcmp(typedPass, passAdmin) != 0) {
         // Se o valor recebido for 1, o usuário não será autenticado por senha incorreta.
@@ -87,6 +90,40 @@ int validarSenhaAdmin(char *typedPass) {
 
     // Se o valor recebido for 0, o usuário será autenticado.
     return 0;
+}
+
+// Função que realiza uma busca de funcionários no arquivo de funcionários.
+void buscarFuncionario(struct Funcionario *funcionario) {
+
+    // Verifica se existem contas cadastradas.
+    if (numContas == 0) {
+        printf("Nenhuma conta foi encontrada.");
+        return;
+    }
+
+    // Abre o arquivo de funcionários no modo de leitura.
+    FILE *file = fopen("funcionarios.txt", "r+");
+
+    // Verifica se o arquivo não conseguir ser gerado.
+    if (file == NULL) {
+        printf("Um erro ocorreu ao tentar abrir o arquivo.\n");
+        return;
+    }
+
+    // Lendo o código do funcionário.
+    fread(&funcionario->codigoFuncionario, sizeof(char), 2, file);
+    printf("Codigo do funcionario: %s\n", funcionario->codigoFuncionario);
+
+    // Lendo o nome do funcionário.
+    fread(&funcionario->nomeFuncionario, sizeof(char), 50, file);
+    printf("Nome do funcionario: %s\n", funcionario->nomeFuncionario);
+
+    // Lendo o CPF do funcionario.
+    fread(&funcionario->cpf, sizeof(char), 14, file);
+    printf("CPF do funcionario: %s\n", funcionario->cpf);
+
+    // Fechando o arquivo de funcionários.
+    fclose(file);
 }
 
 void enviarMenuCadastroFuncionario(struct Funcionario *funcionario) {
@@ -131,22 +168,36 @@ void enviarMenuCadastroFuncionario(struct Funcionario *funcionario) {
     fclose(file);
 }
 
+// Função que cadastra um funcionário
 void cadastrarFuncionario() {
+    // Variável que irá armazenar a senha digitada pelo usuário
     char adminPass[DEFAULT_SIZE];
     printf("Digite a senha de administrador: \n");
     scanf(" %[^\n]", adminPass);
 
+    // Verifica se a senha digitada é inválida
     if (validarSenhaAdmin(adminPass) != 0) {
         printf("A senha digitada esta incorreta, saindo do sistema...\n");
         system("pause"); // Pausando o programa.
         exit(1); // Saindo do programa retornando 1.
     }
 
+    // Verifica se a senha digitada é válida
     if (validarSenhaAdmin(adminPass) == 0) {
+        // Solicita a struct Funcionario em uma variavel funcionario
         struct Funcionario funcionario{};
         printf("Autenticado com sucesso!\n");
+        // Envia o menu de cadastro para funcionarios.
         enviarMenuCadastroFuncionario(&funcionario);
     }
+}
+
+void criarContaCorrente() {
+    printf("Em desenvolvimento...");
+}
+
+void criarContaPoupanca() {
+    printf("Em desenvolvimento...");
 }
 
 // Função que envia o menu de abertura de conta
@@ -165,9 +216,11 @@ void enviarMenuAberturaConta() {
                 printf("Iniciando processo de criacao de conta poupanca... \n\n");
                 // Envia o processo de criação de conta poupança para o funcionário
                 // adicionar função de criação de conta
+                criarContaPoupanca();
                 break;
 
             case 2:
+                criarContaCorrente();
                 break;
 
             case 3:

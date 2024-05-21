@@ -54,13 +54,7 @@ struct ContaCorrente {
     int cpf;
     struct Data nascimento;
     int telefoneContato;
-    char endereco[DEFAULT_SIZE];
-    int cep;
-    char local[DEFAULT_SIZE];
-    int numeroCasa;
-    char bairro[DEFAULT_SIZE];
-    char cidade[DEFAULT_SIZE];
-    char estado[DEFAULT_SIZE];
+    struct Endereco endereco;
     char senhaDoClienteCc[MAX_PASSWORD_SIZE];
 };
 

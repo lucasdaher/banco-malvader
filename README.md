@@ -7,14 +7,43 @@ de programação.
 > A documentação do projeto ainda está sendo atualizada, certifique-se de seguir todas as informações que estão nela
 > para garantir um bom funcionamento do código e do projeto.
 
-### Documentação
+## Documentação
 
-Como utilizar algumas funções específicas do projeto?
+A documentação do projeto irá explicar como utilizar algumas funções criadas para o sistema.
 
-- solicitarSenhaFuncionario(int tipoDeMenu)
-    - ``tipoDeMenu``: Adicione o valor específico para cada validação de senha para o funcionário. Esse valor irá
-      influenciar em qual menu será enviado para o usuário após a validação da senha.
-- Mais funções serão adicionadas aqui em breve...
+### Como utilizar a função solicitarSenhaFuncionario(int tipoDeMenu):
+
+```js
+// Requisita a função passando o parâmetro sendo 1.
+solicitarSenhaFuncionario(1);
+// O valor 1 como parâmetro significa que você está requisitando o envio do menu de funcionários.
+```
+
+### Como utilizar a função validarSenhaAdmin(char *senhaDigitada):
+
+Também será mostrado como captar a senha digitada pelo usuário e armazená-la em uma variável.
+
+```c
+// Crie uma variável para receber a senha digitada pelo usuário.
+char senhaDigitada[16]; // o tamanho máximo da senha é 16 no sistema do banco.
+
+// Adicione o método para receber a senha digitada pelo usuário
+printf("Digite a senha: \n");
+fflush(stdin); // Realiza a limpeza do buffer do teclado.
+gets(senhaDigitada); // Recebe a string digitada pelo usuário e armazena na variável.
+
+// Faz uma verificação se a senha for ou não validada utilizando a função.
+if (validarSenhaAdmin(senhaDigitada, "Coloque aqui a senha que deve ser aceita") != 0) {
+// Você pode utilizar uma variável ou um arquivo no lugar da senha que deve ser aceita
+printf("A senha digitada está incorreta.\n");
+// Retorna o código e para a sua execução.
+return;
+}
+
+// Adicione o código para caso a senha seja autenticada deste local para baixo.
+```
+
+- A documentação ainda está sendo desenvolvida...
 
 > [!WARNING]
-> Alguns problemas podem ser encontrados pois o projeto ainda está em fase de desenvolvimento.
+> Qualquer problema encontrado no projeto deve ser reportado na aba **Issues**!

@@ -3,42 +3,42 @@
 #include <conio.h>
 #include <string.h>
 #include <locale.h>
+#include <unistd.h>
 
 #define MAX_PASSWORD_SIZE 6
 #define DEFAULT_SIZE 128
 
 struct Data {
-    int dia;
-    int mes;
-    int ano;
+    char dia[2];
+    char mes[2];
+    char ano[4];
 };
 
 struct Endereco {
-    char endereco[DEFAULT_SIZE];
-    int cep;
-    char local[DEFAULT_SIZE];
-    int numeroDaCasa;
-    char bairro[DEFAULT_SIZE];
-    char cidade[DEFAULT_SIZE];
-    char estado[DEFAULT_SIZE];
+    char endereco[45]; // Maximo de 45 caracteres
+    char cep[9];
+    char bairro[20];
+    char cidade[20];
+    char estado[4]; // O usuário deve informar em SIGLA
 };
-
-//struct Funcionario {
-//    char codigoFuncionario[2];
-//    char cargo[DEFAULT_SIZE];
-//    char nomeFuncionario[DEFAULT_SIZE];
-//    char cpf[14]; // 000.000.000-00
-//    struct Data nascimento;
-//    char telefoneContato[15];
-//    char senhaFuncionario[MAX_PASSWORD_SIZE];
-//    struct Endereco endereco;
-//};
 
 struct Funcionario {
-    char nomeFuncionario[25]; // máximo de 25 caracteres por nome digitado
-    char cpf[14]; // digitar o cpf somente os números
-    char excluido; // definir se o usuário foi excluido ou não
+    char nomeFuncionario[25];
+    char cpf[14];
+    char codigoFuncionario[3];
+    char cargo[25];
+    struct Data nascimento;
+    char telefoneContato[15];
+    char senhaFuncionario[16];
+    struct Endereco endereco;
+    char excluido;
 };
+
+void limparMensagens(int quantidadeDeLinhas) {
+    for (int i = 0; i < quantidadeDeLinhas; i++) {
+        printf("\n");
+    }
+}
 
 int consultarFuncionario(FILE *file, Funcionario funcionario);
 
@@ -274,7 +274,33 @@ void enviarMenuFuncionario() {
                         fseek(file, posicao * sizeof(funcionario), SEEK_SET);
                         fread(&funcionario, sizeof(funcionario), 1, file);
 
-                        printf("Funcionario: %s\nCPF: %s\n", funcionario.nomeFuncionario, funcionario.cpf);
+                        printf("\nMostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
+                        printf("---------------------------------------------\n");
+                        printf("Nome: %s\n", funcionario.nomeFuncionario);
+                        printf("Codigo: %s\n", funcionario.codigoFuncionario);
+                        printf("Cargo: %s\n", funcionario.cargo);
+                        printf("CPF: %s\n", funcionario.cpf);
+                        printf("Data de Nascimento: %s/%s/%s\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
+                               funcionario.nascimento.ano);
+                        printf("Telefone: %s\n", funcionario.telefoneContato);
+                        printf("Endereco: %s\n", funcionario.endereco.endereco);
+                        printf("CEP: %s\n", funcionario.endereco.cep);
+                        printf("Bairro: %s\n", funcionario.endereco.bairro);
+                        printf("Cidade: %s\n", funcionario.endereco.cidade);
+                        printf("Estado: %s\n", funcionario.endereco.estado);
+                        printf("Senha: %s\n", funcionario.senhaFuncionario);
+                        printf("---------------------------------------------\n");
+
+                        printf("\n(!) Voce sera redirecionado ao menu de funcionario em alguns segundos (15s)...\n");
+
+                        // Aguardar 15 segundos para executar as próximas linhas de código
+                        sleep(15);
+
+                        // Requisita a função que realiza a limpeza das mensagens
+                        limparMensagens(100);
+
+                        // Envia o menu de funcionario novamente para o usuario
+                        enviarMenuFuncionario();
                     }
 
                     getch();
@@ -342,9 +368,57 @@ void enviarMenuFuncionario() {
                     fflush(stdin); // Limpa o buffer do teclado
                     gets(funcionario.nomeFuncionario);
 
-                    printf("Digite o numero do CPF do funcionario (somente numeros): \n");
+                    printf("Digite o codigo do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.codigoFuncionario);
+
+                    printf("Digite o cargo do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.cargo);
+
+                    printf("Digite o CPF do funcionario no formato (000.000.000-00): \n");
                     fflush(stdin); // Limpa o buffer do teclado
                     gets(funcionario.cpf);
+
+                    printf("Digite o dia da data de nascimento do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nascimento.dia);
+
+                    printf("Digite o mes da data de nascimento do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nascimento.mes);
+
+                    printf("Digite o ano da data de nascimento do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nascimento.ano);
+
+                    printf("Digite o telefone para contato: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.telefoneContato);
+
+                    printf("Digite o endereco do funcionario (Maximo de 45 caracteres): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.endereco);
+
+                    printf("Digite o CEP do funcionario no formato (00000-000): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.cep);
+
+                    printf("Digite o bairro do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.bairro);
+
+                    printf("Digite a cidade do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.cidade);
+
+                    printf("Digite o estado do funcionario (Coloque em sigla: ex: DF): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.estado);
+
+                    printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.senhaFuncionario);
 
                     // Requisita a função que insere os dados digitados no arquivo de funcionários
                     inserirFuncionario(file, funcionario);

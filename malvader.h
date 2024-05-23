@@ -317,8 +317,7 @@ void enviarMenuFuncionario() {
                         scanf("%d", &option);
 
                         fflush(stdin); // Limpa o buffer do teclado
-
-                        char senhaDigitada[10];
+                        
                         switch (option) {
                             case 1:
                                 //solicitarSenhaFuncionario(faltando parametros);

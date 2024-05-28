@@ -136,6 +136,7 @@ int inserirFuncionario(FILE *file, Funcionario funcionario) {
     return 0;
 }
 
+// Adicionar validação pela senha do funcionário contida no arquivo
 // Função que realiza a validação da senha administrativa.
 int validarSenhaAdmin(char *senhaDigitada) {
     // Definindo a senha padrão para administrador.
@@ -317,7 +318,7 @@ void enviarMenuFuncionario() {
                         scanf("%d", &option);
 
                         fflush(stdin); // Limpa o buffer do teclado
-                        
+
                         switch (option) {
                             case 1:
                                 //solicitarSenhaFuncionario(faltando parametros);

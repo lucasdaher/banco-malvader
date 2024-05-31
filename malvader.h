@@ -39,10 +39,14 @@ struct Funcionario
 
 void enviarMenuCliente();
 void limparMensagens(int quantidadeDeLinhas);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void enviarTitulo();
+void enviarMenuFuncionario();
+void solicitarSenhaFuncionario(int tipoDeMenu);
+void enviarMenuPrincipal();
+int consultarFuncionario(FILE *file, Funcionario funcionario);
+int inserirFuncionario(FILE *file, Funcionario funcionario);
+int validarSenhaAdmin(char *senhaDigitada);
+int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo);
 
 // Função para validar a senha do cliente.
 int validarSenhaCliente(char *senhaDigitada)
@@ -58,8 +62,9 @@ int validarSenhaCliente(char *senhaDigitada)
     file = fopen("arquivo.txt", "w");
   }
 
+  enviarTitulo();
   // Pede pro usuário inserir a senha.
-  printf("Digite a sua senha: \n");
+  printf("Por favor, digite a sua senha para acessar: \n\n");
   fflush(stdin); // Limpa o buffer do techado
   // Recebe a string que foi digitada
   gets(senhaDigitada);
@@ -76,15 +81,17 @@ int validarSenhaCliente(char *senhaDigitada)
   // if (strcmp(senhaDigitada, passCliente) != 0) // Compara duas strings
 
   // Remover essa linha e voltar a de cima, estou apenas testando...
-  if (strcmp(senhaDigitada, "cliente123") != 0) // Compara duas strings
+  if (strcmp(senhaDigitada, "c123") != 0) // Compara duas strings
   {
+    enviarTitulo();
+
     printf("\nSenha incorreta, saindo do programa...\n");
-    system("pause");
+    exit(1);
     return 1;
   }
 
   // Mensagem de que a senha foi autenticada.
-  printf("Voce foi autenticado com sucesso.\n");
+  // printf("Voce foi autenticado com sucesso.\n");
 
   // Fechando o arquivo de clientes.
   fclose(file);
@@ -99,93 +106,127 @@ void visualizarSaldo()
   // e adicionar o conteúdo do saldo na variável saldo.
 
   float saldo = 0;
-  char senhaDigitada;
-
-  // Autenticação da senha do cliente.
-  validarSenhaCliente(&senhaDigitada);
-
   int contador;
+
   system("cls");
   for (int i = 0; i <= 10; i++)
   {
-    printf("\nInformacoes do seu saldo em conta:\n", saldo);
-    printf("\nSaldo da conta: R$%.2f\n\n", saldo);
+    enviarTitulo();
+    printf("Saldo atual em sua conta: R$%.2f\n\n", saldo);
     contador = 10 - i;
     if (contador == 1)
-      printf("(!) Voce sera redirecionado(a) ao menu de clientes em %d segundo...\n\n\n\n", contador);
+      printf("(!) Voltando ao menu de clientes em %d segundo...\n", contador);
     else if (contador == 0)
       printf("(!) Voltando ao menu de clientes...\n");
     else
-      printf("(!) Voce sera redirecionado(a) ao menu de clientes em %d segundos...\n\n\n\n", contador);
+      printf("(!) Voltando ao menu de clientes em %d segundos...\n", contador);
 
     sleep(1);
     system("cls");
   }
 
   enviarMenuCliente();
-
-  // Envia o saldo para o cliente.
-
-  // sleep(10); // Aguarda 10 segundos para retornar ao menu de clientes
 }
 
 // Função para realizar depósito.
-void depositar(float *saldo, float valor)
+void depositar(float *saldo)
 {
+  float valor;
   char senhaDigitada;
   validarSenhaCliente(&senhaDigitada);
 
-  printf("\nDigite o valor a ser depositado: R$ ");
+  enviarTitulo();
+  printf("Digite o valor a ser depositado: \n\nR$");
   scanf("%f", &valor);
+
+  // Recebe o valor e adiciona ao saldo do usuário.
   *saldo += valor;
 
   int contador;
   system("cls");
+  // Inicializa um laço para a cada 1 segundo uma mensagem com o tempo atualizada ser enviada.
   for (int i = 0; i <= 10; i++)
   {
-    printf("\n\nDesposito de R$%.2f realizado com sucesso! \n\nSeu novo saldo: R$%.2f\n\n", valor, *saldo);
+    enviarTitulo();
+
+    printf("Voce realizou um deposito de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, *saldo);
+    // Diminui o tempo do contador a cada segundo que passa
     contador = 10 - i;
     if (contador == 1)
-      printf("(!) Voce sera redirecionado(a) de volta ao menu em %d segundo...\n\n\n\n", contador);
+      printf("(!) Voltando ao menu em %d segundo...\n", contador);
     else if (contador == 0)
-      printf("(!) Voltando para o menu de clientes...\n");
+      printf("(!) Voltando ao menu de clientes...\n");
     else
-      printf("(!) Voce sera redirecionado(a) de volta ao menu em %d segundos...\n\n\n\n", contador);
+      printf("(!) Voltando ao menu em %d segundos...\n", contador);
 
     sleep(1);
     system("cls");
   }
+
+  // Enviar o menu de clientes novamente para o usuário.
+  enviarMenuCliente();
 }
 
 // Função para realizar saques.
-void sacar(float *saldo, float valor)
+void sacar(float *saldo)
 {
+  float valor;
   char senhaDigitada;
   validarSenhaCliente(&senhaDigitada);
 
-  // Verifica se o saldo é maior que o valor digitado
-  if (*saldo >= valor)
+  enviarTitulo();
+  printf("Digite o valor a ser retirado: \n\nR$");
+  scanf("%f", &valor);
+  system("cls");
+
+  if (*saldo < valor)
   {
-    // Retira o valor do saldo do usuário
-    *saldo -= valor;
-    printf("\nSaque de %.2f realizado com sucesso! \nNovo saldo: R$ %.2f\n\n", valor, *saldo);
+    enviarTitulo();
+    printf("Voce nao possui saldo suficiente para realizar este saque.\n");
+    printf("Por questoes de seguranca, estamos saindo do programa...\n");
+    exit(1);
+    return;
   }
-  else
+
+  // Recebe o valor e adiciona ao saldo do usuário.
+  *saldo -= valor;
+
+  int contador;
+  system("cls");
+  // Inicializa um laço para a cada 1 segundo uma mensagem com o tempo atualizada ser enviada.
+  for (int i = 0; i <= 10; i++)
   {
-    printf("\nSaldo insuficiente. \nNao foi possivel sacar.");
+    enviarTitulo();
+    printf("Voce realizou um saque de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, *saldo);
+
+    // Diminui o tempo do contador a cada segundo que passa
+    contador = 10 - i;
+    if (contador == 1)
+      printf("(!) Voltando ao menu em %d segundo...\n", contador);
+    else if (contador == 0)
+      printf("(!) Voltando ao menu de clientes...\n");
+    else
+      printf("(!) Voltando ao menu em %d segundos...\n", contador);
+
+    sleep(1);
+    system("cls");
   }
+
+  // Enviar o menu de clientes novamente para o usuário.
+  enviarMenuCliente();
 }
 
 void enviarMenuCliente()
 {
   float saldo = 1000.0;
-  float valor;
+
+  enviarTitulo();
 
   int opcao;
   do
   {
-    printf("Menu Cliente: \n");
-    printf("\n1) Saldo\n");
+    printf("Escolha uma opcao do menu de clientes: \n\n");
+    printf("1) Saldo\n");
     printf("2) Deposito\n");
     printf("3) Saque\n");
     printf("4) Extrato\n");
@@ -199,24 +240,22 @@ void enviarMenuCliente()
     case 1:
       visualizarSaldo();
       break;
+
     case 2:
-      depositar(&saldo, valor);
+      depositar(&saldo);
       break;
+
     case 3:
-      printf("\nDigite o valor a ser sacado: R$ ");
-      scanf("%f");
-      sacar(&saldo, valor);
+      sacar(&saldo);
+      break;
+
     default:
-      printf("\nVoce selecionou uma opcao invalida, tente outra...");
+      printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
       break;
     }
 
   } while (opcao <= 0 || opcao > 6);
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void limparMensagens(int quantidadeDeLinhas)
 {
@@ -225,20 +264,6 @@ void limparMensagens(int quantidadeDeLinhas)
     printf("\n");
   }
 }
-
-int consultarFuncionario(FILE *file, Funcionario funcionario);
-
-int inserirFuncionario(FILE *file, Funcionario funcionario);
-
-int validarSenhaAdmin(char *senhaDigitada);
-
-int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo);
-
-void enviarMenuFuncionario();
-
-void solicitarSenhaFuncionario(int tipoDeMenu);
-
-void enviarMenuPrincipal();
 
 struct ContaPoupanca
 {
@@ -412,7 +437,7 @@ void enviarMenuAberturaConta()
       break;
 
     default:
-      printf("Opcao invalida, tente novamente... \n");
+      printf("Voce selecionou uma opcao invalida, tente outra...\n");
     }
     // Executa o código acima enquanto option não for (1,2 ou 3)
   } while (option <= 0 || option > 3);
@@ -649,7 +674,7 @@ void enviarMenuFuncionario()
         break;
 
       default:
-        printf("Opcao invalida, tente novamente...");
+        printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
       }
 
       // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
@@ -719,11 +744,10 @@ void solicitarSenhaFuncionario(int tipoDeMenu)
   } while (acesso == 0);
 }
 
-// Função para enviar o menu principal
-void enviarMenuPrincipal()
+void enviarTitulo()
 {
   char title[7][91] = {
-      "::::    ::::      :::     :::    :::     :::     :::     :::::::::  :::::::::: :::::::::  ",
+      "::::     ::::     :::     :::    :::     :::     :::     :::::::::  :::::::::: :::::::::  ",
       "+:+:+: :+:+:+   :+: :+:   :+:    :+:     :+:   :+: :+:   :+:    :+: :+:        :+:    :+: ",
       "+:+ +:+:+ +:+  +:+   +:+  +:+    +:+     +:+  +:+   +:+  +:+    +:+ +:+        +:+    +:+ ",
       "+#+  +:+  +#+ +#++:++#++: +#+    +#+     +:+ +#++:++#++: +#+    +:+ +#++:++#   +#++:++#:  ",
@@ -740,47 +764,34 @@ void enviarMenuPrincipal()
       "                     #+#    #+# #+#     #+# #+#   #+#+# #+#   #+#                         ",
       "                     #########  ###     ### ###    #### ###    ###                        "};
 
-  // char malvader[18][190] = {
-  //     "MMMMMMMM               MMMMMMMM               AAA               LLLLLLLLLLL     VVVVVVVV           VVVVVVVV   AAA               DDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   ",
-  //     "M:::::::M             M:::::::M              A:::A              L:::::::::L     V::::::V           V::::::V  A:::A              D::::::::::::DDD   E::::::::::::::::::::ER::::::::::::::::R  ",
-  //     "M::::::::M           M::::::::M             A:::::A             L:::::::::L     V::::::V           V::::::V A:::::A             D:::::::::::::::DD E::::::::::::::::::::ER::::::RRRRRR:::::R ",
-  //     "M:::::::::M         M:::::::::M            A:::::::A            LL:::::::LL     V::::::V           V::::::VA:::::::A            DDD:::::DDDDD:::::DEE::::::EEEEEEEEE::::ERR:::::R     R:::::R",
-  //     "M::::::::::M       M::::::::::M           A:::::::::A             L:::::L        V:::::V           V:::::VA:::::::::A             D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
-  //     "M:::::::::::M     M:::::::::::M          A:::::A:::::A            L:::::L         V:::::V         V:::::VA:::::A:::::A            D:::::D     D:::::DE:::::E               R::::R     R:::::R",
-  //     "M:::::::M::::M   M::::M:::::::M         A:::::A A:::::A           L:::::L          V:::::V       V:::::VA:::::A A:::::A           D:::::D     D:::::DE::::::EEEEEEEEEE     R::::RRRRRR:::::R ",
-  //     "M::::::M M::::M M::::M M::::::M        A:::::A   A:::::A          L:::::L           V:::::V     V:::::VA:::::A   A:::::A          D:::::D     D:::::DE:::::::::::::::E     R:::::::::::::RR  ",
-  //     "M::::::M  M::::M::::M  M::::::M       A:::::A     A:::::A         L:::::L            V:::::V   V:::::VA:::::A     A:::::A         D:::::D     D:::::DE:::::::::::::::E     R::::RRRRRR:::::R ",
-  //     "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
-  //     "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
-  //     "M::::::M    M:::::M    M::::::M     A:::::::::::::::::::::A       L:::::L              V:::::V:::::VA:::::::::::::::::::::A       D:::::D     D:::::DE:::::E               R::::R     R:::::R",
-  //     "M::::::M     MMMMM     M::::::M    A:::::AAAAAAAAAAAAA:::::A      L:::::L         LLLLLLV:::::::::VA:::::AAAAAAAAAAAAA:::::A      D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
-  //     "M::::::M               M::::::M   A:::::A             A:::::A   LL:::::::LLLLLLLLL:::::L V:::::::VA:::::A             A:::::A   DDD:::::DDDDD:::::DEE::::::EEEEEEEE:::::ERR:::::R     R:::::R",
-  //     "M::::::M               M::::::M  A:::::A               A:::::A  L::::::::::::::::::::::L  V:::::VA:::::A               A:::::A  D:::::::::::::::DD E::::::::::::::::::::ER::::::R     R:::::R",
-  //     "M::::::M               M::::::M A:::::A                 A:::::A L::::::::::::::::::::::L   V:::VA:::::A                 A:::::A D::::::::::::DDD   E::::::::::::::::::::ER::::::R     R:::::R",
-  //     "MMMMMMMM               MMMMMMMMAAAAAAA                   AAAAAAALLLLLLLLLLLLLLLLLLLLLLLL    VVVAAAAAAA                   AAAAAAADDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRR",
-  // };
-
   printf("------------------------------------------------------------------------------------------\n\n");
   printf("\n");
-  // Laço de repetição que envia todas as linhas do array acima
+  // Enviar o titulo linha por linha
   for (int i = 0; i < 7; i++)
   {
     printf("%s\n", title[i]);
   }
   printf("\n");
+  // Enviar o subtitulo linha por linha
   for (int i = 0; i < 7; i++)
   {
     printf("%s\n", subtitle[i]);
   }
   printf("\n");
   printf("------------------------------------------------------------------------------------------\n\n");
+}
+
+// Função para enviar o menu principal
+void enviarMenuPrincipal()
+{
 
   // Variavel que vai receber a opção do menu que o usuário selecionar
   int option;
   do
   {
+    enviarTitulo();
     // printf("Bem-vindo(a) ao Malvader Bank!\n\n");
-    printf("Escolha uma opcao do menu principal: \n");
+    printf("Escolha uma opcao do menu principal: \n\n");
     printf("1) Funcionario\n");
     printf("2) Cliente\n");
     printf("3) Sair\n\n");
@@ -809,7 +820,7 @@ void enviarMenuPrincipal()
 
       // Caso o usuario digite algo que não seja aceito ou que não exista
     default:
-      printf("Opcao invalida, tente novamente.");
+      printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
     }
 
     // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)

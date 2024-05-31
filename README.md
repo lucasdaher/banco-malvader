@@ -11,17 +11,15 @@ de programação.
 
 A documentação do projeto irá explicar como utilizar algumas funções criadas para o sistema.
 
-### Como utilizar a função solicitarSenhaFuncionario(int tipoDeMenu):
+### Solicitando senha dos funcionários
 
-```js
+```c
 // Requisita a função passando o parâmetro sendo 1.
 solicitarSenhaFuncionario(1);
 // O valor 1 como parâmetro significa que você está requisitando o envio do menu de funcionários.
 ```
 
-### Como utilizar a função validarSenhaAdmin(char *senhaDigitada):
-
-Também será mostrado como captar a senha digitada pelo usuário e armazená-la em uma variável.
+### Validando a senha de administrador
 
 ```c
 // Crie uma variável para receber a senha digitada pelo usuário.
@@ -43,7 +41,47 @@ return;
 // Adicione o código para caso a senha seja autenticada deste local para baixo.
 ```
 
-- A documentação ainda está sendo desenvolvida...
+### Validando a senha de clientes
+
+```c
+// Requisita a função passando o parâmetro sendo a variável que 
+// receberá a senha que foi digitada pelo usuário.
+char senhaDigitada;
+
+// Requisita a função para validar a senha digitada.
+validarSenhaCliente(&senhaDigitada);
+// O parâmetro deve receber um endereço de memória por se tratar de um ponteiro.
+```
+
+### Solicitando a senha para o cliente
+```c
+int acesso = 0;
+
+  do
+  {
+    acesso = 0;
+
+    // Verifica se a senha do usuário não for validada.
+    if (validarSenhaCliente(&password) == 1)
+    {
+      return;
+    }
+
+    acesso = 1;
+    enviarMenuCliente();
+
+// Enquanto o acesso não for autorizado, o usuário terá que
+// digitar a senha da sua conta.
+  } while (acesso == 0);
+```
+
+### Solicitando senha dos funcionários
+
+```c
+// Requisita a função passando o parâmetro sendo 1.
+solicitarSenhaFuncionario(1);
+// O valor 1 como parâmetro significa que você está requisitando o envio do menu de funcionários.
+```
 
 > [!WARNING]
 > Qualquer problema encontrado no projeto deve ser reportado na aba **Issues**!

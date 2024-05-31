@@ -52,14 +52,14 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
 int validarSenhaCliente(char *senhaDigitada)
 {
   // Abre o arquivo no modo de leitura.
-  FILE *file = fopen("arquivo.txt", "r");
+  FILE *file = fopen("clientes.txt", "r");
 
   // Verifica se o arquivo foi aberto corretamente.
   if (file == NULL)
   {
     printf("Erro na abertura do arquivo.");
     // Tenta criar o arquivo de clientes caso ele não exista.
-    file = fopen("arquivo.txt", "w");
+    file = fopen("clientes.txt", "w");
   }
 
   enviarTitulo();

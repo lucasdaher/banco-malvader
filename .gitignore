@@ -1,3 +1,6 @@
 output/*.txt
 output/*.exe
 output/main.exe
+
+cmake-build-debug
+cmake-build-debug/*

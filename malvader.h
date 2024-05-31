@@ -3,446 +3,539 @@
 #include <conio.h>
 #include <string.h>
 #include <locale.h>
+#include <unistd.h>
 
-// Definição de valores padrões
 #define MAX_PASSWORD_SIZE 6
 #define DEFAULT_SIZE 128
-#define MAX_CP_ACCOUNTS 15
-#define MAX_CC_ACCOUNTS 15
 
-// Declaração das funções
-void visualizarContaPoupanca(struct ContaPoupanca cps[], int numContas, char nomeCliente[]);
-void removerContaPoupanca(struct ContaPoupanca cps[], int *numContas);
-void cadastrarContaPoupanca(struct ContaPoupanca cps[], int *numContas);
+struct Data {
+    char dia[2];
+    char mes[2];
+    char ano[4];
+};
+
+struct Endereco {
+    char endereco[45]; // Maximo de 45 caracteres
+    char cep[9];
+    char bairro[20];
+    char cidade[20];
+    char estado[4]; // O usuário deve informar em SIGLA
+};
+
+struct Funcionario {
+    char nomeFuncionario[25];
+    char cpf[14];
+    char codigoFuncionario[3];
+    char cargo[25];
+    struct Data nascimento;
+    char telefoneContato[15];
+    char senhaFuncionario[16];
+    struct Endereco endereco;
+    char excluido;
+};
+
+void limparMensagens(int quantidadeDeLinhas) {
+    for (int i = 0; i < quantidadeDeLinhas; i++) {
+        printf("\n");
+    }
+}
+
+int consultarFuncionario(FILE *file, Funcionario funcionario);
+
+int inserirFuncionario(FILE *file, Funcionario funcionario);
+
+int validarSenhaAdmin(char *senhaDigitada);
+
+int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo);
+
 void enviarMenuFuncionario();
-void enviarMenuAberturaConta();
+
+void solicitarSenhaFuncionario(int tipoDeMenu);
+
 void enviarMenuPrincipal();
 
-struct Data
-{
-  int dia;
-  int mes;
-  int ano;
+struct ContaPoupanca {
+    int id;
+    int agencia;
+    int numeroDaConta;
+    char nomeCliente[DEFAULT_SIZE];
+    int cpf;
+    struct Data nascimento;
+    int telefoneContato;
+    struct Endereco endereco;
+    char senhaDoClienteCp[MAX_PASSWORD_SIZE];
 };
 
-struct Endereco
-{
-  char endereco[DEFAULT_SIZE];
-  int cep;
-  char local[DEFAULT_SIZE];
-  int numeroDaCasa;
-  char bairro[DEFAULT_SIZE];
-  char cidade[DEFAULT_SIZE];
-  char estado[DEFAULT_SIZE];
+struct ContaCorrente {
+    int id;
+    int agencia;
+    int numeroDaConta;
+    float limiteDaConta;
+    struct Data vencimento;
+    char nomeCliente[DEFAULT_SIZE];
+    int cpf;
+    struct Data nascimento;
+    int telefoneContato;
+    struct Endereco endereco;
+    char senhaDoClienteCc[MAX_PASSWORD_SIZE];
 };
 
-struct Funcionario
-{
-  int codigoFuncionario;
-  char cargo[DEFAULT_SIZE];
-  char nomeFuncionario[DEFAULT_SIZE];
-  int cpf;
-  struct Data nascimento;
-  char telefoneContato[15];
-  char senhaFuncionario[MAX_PASSWORD_SIZE];
-  struct Endereco endereco;
-};
+// Função que realiza a consulta nos arquivos sobre um funcionário
+int consultarFuncionario(FILE *file, Funcionario funcionario) {
+    Funcionario funcionario_lido;
+    int posicao;
 
-struct ContaPoupanca
-{
-  int id;
-  int agencia;
-  int numeroDaConta;
-  char nomeCliente[DEFAULT_SIZE];
-  int cpf;
-  struct Data nascimento;
-  int telefoneContato;
-  struct Endereco endereco;
-  char senhaDoClienteCp[MAX_PASSWORD_SIZE];
-};
+    // Caso o arquivo tenha sido aberto e lido com sucesso
+    if (file != NULL) {
+        // Define o ponteiro de busca para o ínicio do código
+        fseek(file, 0L, SEEK_SET);
 
-struct ContaCorrente
-{
-  int id;
-  int agencia;
-  int numeroDaConta;
-  float limiteDaConta;
-  struct Data vencimento;
-  char nomeCliente[DEFAULT_SIZE];
-  int cpf;
-  struct Data nascimento;
-  int telefoneContato;
-  char endereco[DEFAULT_SIZE];
-  int cep;
-  char local[DEFAULT_SIZE];
-  int numeroCasa;
-  char bairro[DEFAULT_SIZE];
-  char cidade[DEFAULT_SIZE];
-  char estado[DEFAULT_SIZE];
-  char senhaDoClienteCc[MAX_PASSWORD_SIZE];
-};
+        // Define a posição inicial para 0
+        posicao = 0;
 
-struct ContaPoupanca cps[MAX_CP_ACCOUNTS];
-int numContas = 0;
-
-// Função que visualiza os dados de uma conta poupança de um cliente
-void visualizarContaPoupanca(struct ContaPoupanca cps[], int numContas, char nomeCliente[])
-{
-  printf("Contas do cliente %s: \n", nomeCliente);
-  for (int i = 0; i < numContas; i++)
-  {
-    if (strcmp(cps[i].nomeCliente, nomeCliente) == 0)
-    {
-      printf("Conta %d - Saldo: R$0\n", cps[i].id); // adicionar saldo quando tiver o sistema feito
+        while (fread(&funcionario_lido, sizeof(funcionario_lido), 1, file)) {
+            if (strcmpi(funcionario_lido.nomeFuncionario, funcionario.nomeFuncionario) == 0 &&
+                (funcionario_lido.excluido == 0))
+                return posicao;
+            posicao++;
+        };
     }
-  }
+    return -1;
 }
 
-// Função que remove uma conta poupança de um cliente
-void removerContaPoupanca(struct ContaPoupanca cps[], int *numContas)
-{
-  if (*numContas == 0)
-  {
-    printf("Nao existem contas cadastradas. \n");
-    return;
-  }
+// Função que insere os dados do funcionário em um arquivo
+int inserirFuncionario(FILE *file, Funcionario funcionario) {
+    Funcionario funcionario_lido;
+    int posicao;
 
-  int numeroConta;
-  printf("Digite o numero da conta que deseja remover:\n");
-  scanf("%d", &numeroConta);
+    if (file != NULL) {
+        posicao = 0;
 
-  int indiceConta = -1;
-  for (int i = 1; i < *numContas; i++)
-  {
-    if (cps[i].id == numeroConta)
-    {
-      indiceConta = i;
-      break;
+        // Procurar se a estrutura do funcionário existe no arquivo.
+        if (consultarFuncionario(file, funcionario)) {
+            // Definindo o ponteiro de busca no início do arquivo
+            fseek(file, 0L, SEEK_SET);
+
+            // Vai rodar enquanto não chegar ao fim do arquivo
+            while (fread(&funcionario_lido, sizeof(funcionario_lido), 1, file)) {
+                if (funcionario_lido.excluido == 1) break;
+                posicao++;
+            };
+
+            fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+            funcionario.excluido = 0;
+
+            if (fwrite(&funcionario, sizeof(funcionario), 1, file)) {
+                printf("O funcionario foi cadastrado com sucesso.\n\n");
+                getch();
+                return 1;
+            }
+
+        }
     }
-  }
-
-  if (indiceConta == -1)
-  {
-    printf("Conta com numero %d nao foi encontrada... \n", numeroConta);
-    return;
-  }
-
-  printf("Conta %d excluida com sucesso.\n", cps[indiceConta].id);
-  cps[indiceConta] = cps[(*numContas) - 1];
-  (*numContas)--;
+    return 0;
 }
 
-// Função que efetua o cadastro de uma conta poupança
-void cadastrarContaPoupanca(struct ContaPoupanca cps[], int *numContas)
-{
-  if (*numContas >= MAX_CP_ACCOUNTS)
-  {
-    printf("Limite de contas atingido.\n");
-    return;
-  }
+// Adicionar validação pela senha do funcionário contida no arquivo
+// Função que realiza a validação da senha administrativa.
+int validarSenhaAdmin(char *senhaDigitada) {
+    // Definindo a senha padrão para administrador.
+    const char *passAdmin = "adm";
 
-  struct ContaPoupanca *cp;
-  printf("Digite o numero da conta: \n");
-  scanf("%d", &cp->id);
-
-  for (int i = 0; i < *numContas; i++)
-  {
-    if (cps[i].id == cp->id)
-    {
-      printf("Ja existe uma conta com este numero.\n");
-      return;
+    // Verificação se a senha digitada está correta.
+    if (strcmp(senhaDigitada, passAdmin) != 0) {
+        // Se o valor recebido for 1, o usuário não será autenticado por senha incorreta.
+        return 1;
     }
-  }
 
-  printf("Digite a agencia: \n");
-  scanf("%d", &cp->agencia);
+    // Se o valor recebido for 0, o usuário será autenticado.
+    return 0;
+}
 
-  printf("Digite o numero da conta: \n");
-  scanf("%d", &cp->numeroDaConta);
+// Função que altera os dados de um funcionário
+int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo) {
+    int posicao;
 
-  printf("Digite o nome do cliente: \n");
-  scanf(" %[^\n]", &cp->nomeCliente);
+    // Verifica se o arquivo conseguiu ser aberto com sucesso
+    if (file != NULL) {
+        posicao = consultarFuncionario(file, funcionario_antigo);
+        if (posicao != -1) {
+            fseek(file, posicao * sizeof(Funcionario), SEEK_SET);
+            fread(&funcionario_antigo, sizeof(funcionario_antigo), 1, file);
 
-  printf("Digite o CPF (apenas numeros): \n");
-  scanf("%d", &cp->cpf);
+            ///////////////////////////////////////////////////////////////////////
+            // Adicionar todos os dados que serão atualizados nas linhas abaixo: //
+            ///////////////////////////////////////////////////////////////////////
 
-  printf("Digite a data de nascimento seguindo o formato (12 07 2002)\n");
-  scanf("%d %d %d", &cp->nascimento.dia, &cp->nascimento.mes, &cp->nascimento.ano);
+            // Copia os dados contidos no registro antigo e envia para o novo
+            strcpy(funcionario_antigo.nomeFuncionario, funcionario_novo.nomeFuncionario);
+            strcpy(funcionario_antigo.cpf, funcionario_novo.cpf);
 
-  printf("Digite o telefone para contato (apenas numeros): \n");
-  scanf("%d", &cp->telefoneContato);
+            fseek(file, posicao * sizeof(Funcionario), SEEK_SET);
+            fwrite(&funcionario_antigo, sizeof(funcionario_novo), 1, file);
 
-  printf("Digite o endereco do cliente: \n");
-  scanf(" %[^\n]", &cp->endereco);
-
-  printf("Digite o CEP (apenas numeros): \n");
-  scanf("%d", &cp->endereco.cep);
-
-  printf("Digite o local: \n");
-  scanf(" %[^\n]", &cp->endereco.local);
-
-  printf("Digite o numero da casa: \n");
-  scanf("%d", &cp->endereco.numeroDaCasa);
-
-  printf("Digite o bairro: \n");
-  scanf(" %[^\n]", &cp->endereco.bairro);
-
-  printf("Digite a cidade: \n");
-  scanf(" %[^\n]", &cp->endereco.cidade);
-
-  printf("Digite o estado: \n");
-  scanf(" %[^\n]", &cp->endereco.estado);
-
-  printf("Digite uma senha para o cliente (somente numeros): \n");
-  scanf(" %[^\n]", &cp->senhaDoClienteCp);
-
-  cps[*numContas] = *cp;
-  (*numContas)++;
-  printf("A conta foi cadastrada com sucesso.\n\n");
-  enviarMenuFuncionario();
+            printf("Os dados deste funcionario foram alterados com sucesso.\n");
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // Função que envia o menu de abertura de conta
-void enviarMenuAberturaConta()
-{
-  // Variavel que vai armazenar a opcao desejada pelo usuario
-  int option;
-  do
-  {
-    printf("\nMenu funcionario:\n\n");
-    printf("1) Conta Poupanca - CP\n");
-    printf("2) Conta Corrente - CC\n");
-    printf("3) Voltar\n");
-    scanf("%d", &option);
+void enviarMenuAberturaConta() {
+    // Variavel que vai armazenar a opcao desejada pelo usuario
+    int option;
+    do {
+        printf("\nMenu funcionario:\n\n");
+        printf("1) Conta Poupanca - CP\n");
+        printf("2) Conta Corrente - CC\n");
+        printf("3) Voltar\n");
+        scanf("%d", &option);
 
-    switch (option)
-    {
-    case 1:
-      printf("Iniciando processo de criacao de conta poupanca... \n\n");
-      // Envia o processo de criação de conta poupança para o funcionário
-      cadastrarContaPoupanca(cps, &numContas);
-      break;
+        switch (option) {
+            case 1:
+                printf("Iniciando processo de criacao de conta poupanca... \n\n");
+                // Envia o processo de criação de conta poupança para o funcionário
+                // adicionar função de criação de conta
+                break;
 
-    case 2:
-      break;
+            case 2:
+                break;
 
-    case 3:
-      printf("Voltando para o menu do funcionario... \n");
-      enviarMenuFuncionario();
-      break;
+            case 3:
+                printf("Voltando para o menu do funcionario... \n");
+                enviarMenuFuncionario();
+                break;
 
-    default:
-      printf("Opcao invalida, tente novamente... \n");
-    }
-    // Executa o código acima enquanto option não for (1,2 ou 3)
-  } while (option <= 0 || option > 3);
+            default:
+                printf("Opcao invalida, tente novamente... \n");
+        }
+        // Executa o código acima enquanto option não for (1,2 ou 3)
+    } while (option <= 0 || option > 3);
 }
 
 // Função que envia o menu do funcionario
-void enviarMenuFuncionario()
-{
-  // Variavel que vai receber a opcao desejada pelo usuario
-  int option;
-  do
-  {
-    printf("\n\nMenu funcionario:\n");
-    printf("1) Abertura de Conta\n");
-    printf("2) Encerramento de Conta\n");
-    printf("3) Consultar Dados\n");
-    printf("4) Alterar Dados\n");
-    printf("5) Cadastro de Funcionarios\n");
-    printf("6) Gerar Relatorios (Indisponivel)\n");
-    printf("7) Sair\n\n");
-    scanf("%d", &option);
+void enviarMenuFuncionario() {
+    // Declaração do arquivo
+    FILE *file;
+    // Variavel que vai receber a opcao desejada pelo usuario
+    Funcionario funcionario, funcionario_alterado;
 
-    switch (option)
-    {
-    case 1:
-      printf("Iniciando processo de abertura de conta...\n");
-      // Chamando a função que envia o menu de abertura de conta
-      enviarMenuAberturaConta();
-      break;
+    // Variavel da opção que será digitada pelo usuário
+    int option;
 
-    case 2:
-      printf("Em desenvolvimento...");
-      exit(1);
-      break;
+    // Tenta abrir o arquivo no modo de leitura e escrita
+    file = fopen("funcionarios.txt", "r+");
 
-    case 3:
-      printf("Em desenvolvimento...");
-      exit(1);
-      break;
-
-    case 4:
-      printf("Em desenvolvimento...");
-      exit(1);
-      break;
-
-    case 5:
-      printf("Em desenvolvimento...");
-      exit(1);
-      break;
-
-    case 6:
-      printf("Em desenvolvimento...");
-      exit(1);
-      break;
-
-    case 7:
-      printf("Saindo do programa... \n");
-      system("pause");
-      exit(1);
-      break;
-
-    default:
-      printf("Opcao invalida, tente novamente...");
+    // Caso o arquivo não seja encontrado ou aberto por algum motivo
+    // O programa tentará criar um arquivo novo.
+    if (file == NULL) {
+        printf("Arquivo não encontrado, recriando o arquivo...");
+        file = fopen("funcionarios.txt", "w+");
     }
 
-    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
-  } while (option <= 0 || option > 7);
-}
+    // Caso o arquivo exista e seja aberto com sucesso
+    if (file != NULL) {
+        do {
+            // Envia o menu de funcionários
+            printf("\n\nMenu funcionario:\n");
+            printf("1) Abertura de Conta\n");
+            printf("2) Encerramento de Conta\n");
+            printf("3) Consultar Dados\n");
+            printf("4) Alterar Dados\n");
+            printf("5) Cadastro de Funcionarios\n");
+            printf("6) Gerar Relatorios (Indisponivel)\n");
+            printf("7) Sair\n\n");
+            scanf("%d", &option);
 
-// Função para gerar uma senha administrativa ao iniciar o processo de login
-void criarSenhaAdminFuncionario()
-{
-  // Requisitando um arquivo para armazenar as senhas administrativas
-  FILE *file = fopen("pass-admin.txt", "w");
+            // Limpa todos os streams de entrada que estiverem abertos.
+            fflush(file);
 
-  // Verificando se acontecer alguma falha no arquivo
-  if (file == NULL)
-  {
-    printf("Nao foi possivel ler ou criar o arquivo pass-admin.txt!");
-    system("pause");
-    exit(1);
-  }
+            // Verificação e ação para cada valor digitado pelo usuário ao escolher a opção do menu
+            switch (option) {
+                case 1:
+                    printf("Iniciando processo de abertura de conta...\n");
 
-  // Definindo a variavel que vai receber a senha
-  char funcionarioPass[DEFAULT_SIZE];
-  // Definindo o conteúdo da variavel e a senha de administrador
-  strcpy(funcionarioPass, "administrador1");
-  fputs(funcionarioPass, file); // Salvando a STRING que contem a senha do funcionário
+                    // Chamando a função que envia o menu de abertura de conta
+                    enviarMenuAberturaConta();
+                    break;
 
-  // printf("Definindo a senha de administrador como \n%s\n\n", funcionarioPass);
+                case 2:
+                    printf("Em desenvolvimento...");
+                    system("pause");
+                    break;
 
-  // Fechando o arquivo de senhas
-  fclose(file);
+                case 3:
+                    int posicao;
+                    fflush(stdin);
+                    printf("Digite o nome do funcionario desejado: \n");
+                    gets(funcionario.nomeFuncionario);
+
+                    if ((posicao = consultarFuncionario(file, funcionario)) != -1) {
+                        fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+                        fread(&funcionario, sizeof(funcionario), 1, file);
+
+                        printf("\nMostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
+                        printf("---------------------------------------------\n");
+                        printf("Nome: %s\n", funcionario.nomeFuncionario);
+                        printf("Codigo: %s\n", funcionario.codigoFuncionario);
+                        printf("Cargo: %s\n", funcionario.cargo);
+                        printf("CPF: %s\n", funcionario.cpf);
+                        printf("Data de Nascimento: %s/%s/%s\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
+                               funcionario.nascimento.ano);
+                        printf("Telefone: %s\n", funcionario.telefoneContato);
+                        printf("Endereco: %s\n", funcionario.endereco.endereco);
+                        printf("CEP: %s\n", funcionario.endereco.cep);
+                        printf("Bairro: %s\n", funcionario.endereco.bairro);
+                        printf("Cidade: %s\n", funcionario.endereco.cidade);
+                        printf("Estado: %s\n", funcionario.endereco.estado);
+                        printf("Senha: %s\n", funcionario.senhaFuncionario);
+                        printf("---------------------------------------------\n");
+
+                        printf("\n(!) Voce sera redirecionado ao menu de funcionario em alguns segundos (15s)...\n");
+
+                        // Aguardar 15 segundos para executar as próximas linhas de código
+                        sleep(15);
+
+                        // Requisita a função que realiza a limpeza das mensagens
+                        limparMensagens(100);
+
+                        // Envia o menu de funcionario novamente para o usuario
+                        enviarMenuFuncionario();
+                    }
+
+                    getch();
+                    break;
+
+                    // Alterar dados
+                case 4:
+                    do {
+                        printf("\nAlterar dados: \n\n");
+                        printf("1) Alterar Conta\n");
+                        printf("2) Alterar Funcionario\n");
+                        printf("3) Alterar Cliente\n");
+                        printf("4) Voltar\n\n");
+                        scanf("%d", &option);
+
+                        fflush(stdin); // Limpa o buffer do teclado
+
+                        switch (option) {
+                            case 1:
+                                //solicitarSenhaFuncionario(faltando parametros);
+                                break;
+
+                            case 2:
+                                char password[DEFAULT_SIZE];
+
+                                int acesso = 0;
+                                do {
+                                    acesso = 0;
+
+                                    printf("Digite a senha de administrador: \n");
+                                    scanf("%s", password);
+
+                                    // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
+                                    if (validarSenhaAdmin(password) != 0)
+                                        printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
+
+                                    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
+                                    if (validarSenhaAdmin(password) == 0) {
+                                        // Senha autenticada e o acesso será liberado
+                                        acesso = 1;
+
+                                        printf("Digite o nome do funcionario que tera os dados alterados: \n");
+                                        fflush(stdin);
+                                        gets(funcionario.nomeFuncionario);
+
+                                        printf("Digite o novo nome do funcionario: \n");
+                                        fflush(stdin);
+                                        gets(funcionario_alterado.nomeFuncionario);
+
+                                        printf("Digite o novo CPF do funcionario: \n");
+                                        fflush(stdin);
+                                        gets(funcionario_alterado.cpf);
+
+                                        alterarFuncionario(file, funcionario, funcionario_alterado);
+                                    }
+                                } while (acesso == 0);
+                                break;
+                        }
+                    } while (option <= 0 || option > 4);
+                    break;
+
+                case 5:
+                    printf("Digite o nome do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nomeFuncionario);
+
+                    printf("Digite o codigo do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.codigoFuncionario);
+
+                    printf("Digite o cargo do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.cargo);
+
+                    printf("Digite o CPF do funcionario no formato (000.000.000-00): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.cpf);
+
+                    printf("Digite o dia da data de nascimento do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nascimento.dia);
+
+                    printf("Digite o mes da data de nascimento do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nascimento.mes);
+
+                    printf("Digite o ano da data de nascimento do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.nascimento.ano);
+
+                    printf("Digite o telefone para contato: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.telefoneContato);
+
+                    printf("Digite o endereco do funcionario (Maximo de 45 caracteres): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.endereco);
+
+                    printf("Digite o CEP do funcionario no formato (00000-000): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.cep);
+
+                    printf("Digite o bairro do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.bairro);
+
+                    printf("Digite a cidade do funcionario: \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.cidade);
+
+                    printf("Digite o estado do funcionario (Coloque em sigla: ex: DF): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.endereco.estado);
+
+                    printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
+                    fflush(stdin); // Limpa o buffer do teclado
+                    gets(funcionario.senhaFuncionario);
+
+                    // Requisita a função que insere os dados digitados no arquivo de funcionários
+                    inserirFuncionario(file, funcionario);
+                    break;
+
+                case 6:
+                    printf("Em desenvolvimento...");
+                    system("pause");
+                    break;
+
+                case 7:
+                    printf("Saindo do programa... \n");
+                    system("pause");
+                    break;
+
+                default:
+                    printf("Opcao invalida, tente novamente...");
+            }
+
+            // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
+        } while (option <= 0 || option > 7);
+        fclose(file);
+    }
 }
 
 // Função para solicitar a senha do funcionario
-// Pendente: verificar se a senha do usuário está armazenada no arquivo de dados dos funcionarios
-void solicitarSenhaFuncionario()
-{
-  // Gerar a senha de administrador caso ela não exista
-  criarSenhaAdminFuncionario();
+void solicitarSenhaFuncionario(int tipoDeMenu) {
+    // Definindo a váriavel de senha que o usuário irá digitar
+    char password[DEFAULT_SIZE];
 
-  // Definindo a váriavel de senha que o usuário irá digitar
-  char password[DEFAULT_SIZE];
+    int acesso = 0;
+    do {
+        // Bloqueando o acesso do funcionário até a autenticação da senha
+        acesso = 0;
 
-  // String copy: Adiciona a string no conteudo de "senhaFuncionario"
-  // strcpy(funcionario.senhaFuncionario, "teste123");
+        printf("Digite a sua senha: \n");
+        scanf("%s", password); // Não precisa do & por se tratar de uma String
 
-  int acesso = 0;
-  do
-  {
-    // Bloqueando o acesso do funcionário até a inserção da senha
-    acesso = 0;
+        // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
+        if (validarSenhaAdmin(password) != 0)
+            printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
 
-    printf("Digite a sua senha: \n");
-    scanf("%s", password); // Não precisa do & por se tratar de uma String
+        // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
+        if (validarSenhaAdmin(password) == 0) {
+            // Senha autenticada e o acesso será liberado
+            acesso = 1;
 
-    // Inicializa o arquivo de senhas administrativas no modo read
-    FILE *adminFile = fopen("pass-admin.txt", "r");
-    char senhaAdmin[DEFAULT_SIZE];
-
-    // Lê a senha do arquivo uma vez.
-    fgets(senhaAdmin, DEFAULT_SIZE, adminFile);
-
-    // Remove a quebra de linha do final da senha, se houver
-    senhaAdmin[strcspn(senhaAdmin, "\n")] = 0;
-
-    // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
-    if (strcmp(password, senhaAdmin) != 0)
-      printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
-
-    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
-    if (strcmp(password, senhaAdmin) == 0)
-    {
-      // Liberando o acesso para o funcionário
-      acesso = 1;
-
-      // Chamando a função para enviar o menu de funcionários
-      enviarMenuFuncionario();
-    }
-
-    // Fecha o arquivo de senhas administrativas
-    fclose(adminFile);
-  } while (acesso == 0);
+            if (tipoDeMenu == 1) {
+                // Requisitando a função para enviar o menu de funcionários
+                enviarMenuFuncionario();
+            } else if (tipoDeMenu == 2) {
+                enviarMenuAberturaConta(); // Envia o menu de abertura de conta
+            }
+        }
+    } while (acesso == 0);
 }
 
 // Função para enviar o menu principal
-void enviarMenuPrincipal()
-{
-  char malvader[18][190] = {
-      "MMMMMMMM               MMMMMMMM               AAA               LLLLLLLLLLL     VVVVVVVV           VVVVVVVV   AAA               DDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   ",
-      "M:::::::M             M:::::::M              A:::A              L:::::::::L     V::::::V           V::::::V  A:::A              D::::::::::::DDD   E::::::::::::::::::::ER::::::::::::::::R  ",
-      "M::::::::M           M::::::::M             A:::::A             L:::::::::L     V::::::V           V::::::V A:::::A             D:::::::::::::::DD E::::::::::::::::::::ER::::::RRRRRR:::::R ",
-      "M:::::::::M         M:::::::::M            A:::::::A            LL:::::::LL     V::::::V           V::::::VA:::::::A            DDD:::::DDDDD:::::DEE::::::EEEEEEEEE::::ERR:::::R     R:::::R",
-      "M::::::::::M       M::::::::::M           A:::::::::A             L:::::L        V:::::V           V:::::VA:::::::::A             D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
-      "M:::::::::::M     M:::::::::::M          A:::::A:::::A            L:::::L         V:::::V         V:::::VA:::::A:::::A            D:::::D     D:::::DE:::::E               R::::R     R:::::R",
-      "M:::::::M::::M   M::::M:::::::M         A:::::A A:::::A           L:::::L          V:::::V       V:::::VA:::::A A:::::A           D:::::D     D:::::DE::::::EEEEEEEEEE     R::::RRRRRR:::::R ",
-      "M::::::M M::::M M::::M M::::::M        A:::::A   A:::::A          L:::::L           V:::::V     V:::::VA:::::A   A:::::A          D:::::D     D:::::DE:::::::::::::::E     R:::::::::::::RR  ",
-      "M::::::M  M::::M::::M  M::::::M       A:::::A     A:::::A         L:::::L            V:::::V   V:::::VA:::::A     A:::::A         D:::::D     D:::::DE:::::::::::::::E     R::::RRRRRR:::::R ",
-      "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
-      "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
-      "M::::::M    M:::::M    M::::::M     A:::::::::::::::::::::A       L:::::L              V:::::V:::::VA:::::::::::::::::::::A       D:::::D     D:::::DE:::::E               R::::R     R:::::R",
-      "M::::::M     MMMMM     M::::::M    A:::::AAAAAAAAAAAAA:::::A      L:::::L         LLLLLLV:::::::::VA:::::AAAAAAAAAAAAA:::::A      D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
-      "M::::::M               M::::::M   A:::::A             A:::::A   LL:::::::LLLLLLLLL:::::L V:::::::VA:::::A             A:::::A   DDD:::::DDDDD:::::DEE::::::EEEEEEEE:::::ERR:::::R     R:::::R",
-      "M::::::M               M::::::M  A:::::A               A:::::A  L::::::::::::::::::::::L  V:::::VA:::::A               A:::::A  D:::::::::::::::DD E::::::::::::::::::::ER::::::R     R:::::R",
-      "M::::::M               M::::::M A:::::A                 A:::::A L::::::::::::::::::::::L   V:::VA:::::A                 A:::::A D::::::::::::DDD   E::::::::::::::::::::ER::::::R     R:::::R",
-      "MMMMMMMM               MMMMMMMMAAAAAAA                   AAAAAAALLLLLLLLLLLLLLLLLLLLLLLL    VVVAAAAAAA                   AAAAAAADDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRR",
-  };
+void enviarMenuPrincipal() {
+    char malvader[18][190] = {
+            "MMMMMMMM               MMMMMMMM               AAA               LLLLLLLLLLL     VVVVVVVV           VVVVVVVV   AAA               DDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRR   ",
+            "M:::::::M             M:::::::M              A:::A              L:::::::::L     V::::::V           V::::::V  A:::A              D::::::::::::DDD   E::::::::::::::::::::ER::::::::::::::::R  ",
+            "M::::::::M           M::::::::M             A:::::A             L:::::::::L     V::::::V           V::::::V A:::::A             D:::::::::::::::DD E::::::::::::::::::::ER::::::RRRRRR:::::R ",
+            "M:::::::::M         M:::::::::M            A:::::::A            LL:::::::LL     V::::::V           V::::::VA:::::::A            DDD:::::DDDDD:::::DEE::::::EEEEEEEEE::::ERR:::::R     R:::::R",
+            "M::::::::::M       M::::::::::M           A:::::::::A             L:::::L        V:::::V           V:::::VA:::::::::A             D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
+            "M:::::::::::M     M:::::::::::M          A:::::A:::::A            L:::::L         V:::::V         V:::::VA:::::A:::::A            D:::::D     D:::::DE:::::E               R::::R     R:::::R",
+            "M:::::::M::::M   M::::M:::::::M         A:::::A A:::::A           L:::::L          V:::::V       V:::::VA:::::A A:::::A           D:::::D     D:::::DE::::::EEEEEEEEEE     R::::RRRRRR:::::R ",
+            "M::::::M M::::M M::::M M::::::M        A:::::A   A:::::A          L:::::L           V:::::V     V:::::VA:::::A   A:::::A          D:::::D     D:::::DE:::::::::::::::E     R:::::::::::::RR  ",
+            "M::::::M  M::::M::::M  M::::::M       A:::::A     A:::::A         L:::::L            V:::::V   V:::::VA:::::A     A:::::A         D:::::D     D:::::DE:::::::::::::::E     R::::RRRRRR:::::R ",
+            "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
+            "M::::::M   M:::::::M   M::::::M      A:::::AAAAAAAAA:::::A        L:::::L             V:::::V V:::::VA:::::AAAAAAAAA:::::A        D:::::D     D:::::DE::::::EEEEEEEEEE     R::::R     R:::::R",
+            "M::::::M    M:::::M    M::::::M     A:::::::::::::::::::::A       L:::::L              V:::::V:::::VA:::::::::::::::::::::A       D:::::D     D:::::DE:::::E               R::::R     R:::::R",
+            "M::::::M     MMMMM     M::::::M    A:::::AAAAAAAAAAAAA:::::A      L:::::L         LLLLLLV:::::::::VA:::::AAAAAAAAAAAAA:::::A      D:::::D    D:::::D E:::::E       EEEEEE  R::::R     R:::::R",
+            "M::::::M               M::::::M   A:::::A             A:::::A   LL:::::::LLLLLLLLL:::::L V:::::::VA:::::A             A:::::A   DDD:::::DDDDD:::::DEE::::::EEEEEEEE:::::ERR:::::R     R:::::R",
+            "M::::::M               M::::::M  A:::::A               A:::::A  L::::::::::::::::::::::L  V:::::VA:::::A               A:::::A  D:::::::::::::::DD E::::::::::::::::::::ER::::::R     R:::::R",
+            "M::::::M               M::::::M A:::::A                 A:::::A L::::::::::::::::::::::L   V:::VA:::::A                 A:::::A D::::::::::::DDD   E::::::::::::::::::::ER::::::R     R:::::R",
+            "MMMMMMMM               MMMMMMMMAAAAAAA                   AAAAAAALLLLLLLLLLLLLLLLLLLLLLLL    VVVAAAAAAA                   AAAAAAADDDDDDDDDDDDD      EEEEEEEEEEEEEEEEEEEEEERRRRRRRR     RRRRRRR",
+    };
 
-  printf("\n");
-  // Laço de repetição que envia todas as linhas do array acima
-  for (int i = 0; i < 18; i++)
-  {
-    printf("%s\n", malvader[i]);
-  }
-
-  // Variavel que vai receber a opção do menu que o usuário selecionar
-  int option;
-  do
-  {
-    printf("Bem-vindo(a) ao Malvader Bank!\n\n");
-    printf("Escolha uma opcao do menu principal: \n");
-    printf("1) Funcionario\n");
-    printf("2) Cliente\n");
-    printf("3) Sair do Programa\n\n");
-    // Armazena a opção escolhida pelo usuario no endereço de memória de option
-    scanf("%d", &option);
-
-    switch (option)
-    {
-    case 1:
-      // Chamando a função que solicita a senha para o funcionário ao acessar o menu
-      solicitarSenhaFuncionario();
-      break;
-
-    case 2:
-      // Enviar a autenticação da conta do cliente
-      break;
-
-    case 3:
-      printf("Saindo do programa...");
-      system("pause");
-      exit(1);
-      break;
-
-    // Caso o usuario digite algo que não seja aceito ou que não exista
-    default:
-      printf("Opcao invalida, tente novamente.");
+    printf("\n");
+    // Laço de repetição que envia todas as linhas do array acima
+    for (int i = 0; i < 18; i++) {
+        printf("%s\n", malvader[i]);
     }
 
-    // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
-  } while (option <= 0 || option > 3);
+    // Variavel que vai receber a opção do menu que o usuário selecionar
+    int option;
+    do {
+        printf("Bem-vindo(a) ao Malvader Bank!\n\n");
+        printf("Escolha uma opcao do menu principal: \n");
+        printf("1) Funcionario\n");
+        printf("2) Cliente\n");
+        printf("3) Sair do Programa\n\n");
+        // Armazena a opção escolhida pelo usuario no endereço de memória de option
+        scanf("%d", &option);
+
+        switch (option) {
+            case 1:
+                // Chamando a função que solicita a senha para o funcionário ao acessar o menu
+                solicitarSenhaFuncionario(1); // 1 significa que será aberto o menu de funcionarios
+                break;
+
+            case 2:
+                // Enviar a autenticação da conta do cliente
+                break;
+
+            case 3:
+                printf("Saindo do programa...");
+                system("pause");
+                exit(1);
+                break;
+
+                // Caso o usuario digite algo que não seja aceito ou que não exista
+            default:
+                printf("Opcao invalida, tente novamente.");
+        }
+
+        // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
+    } while (option <= 0 || option > 3);
 }

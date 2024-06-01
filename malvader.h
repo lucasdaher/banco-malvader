@@ -59,9 +59,10 @@ int consultarFuncionario(FILE *file, Funcionario funcionario);                  
 int inserirFuncionario(FILE *file, Funcionario funcionario);                                      // Insere dados de um funcionário no arquivo
 int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo); // Altera os dados de um funcionário do arquivo
 int validarSenhaAdmin(char *senhaDigitada);                                                       // Valida a senha de administrador digitada pelo usuário
+int validarSenhaCliente(char *senhaDigitada, char *numeroConta);                                  // Valida o usuario e senha de um cliente
 
 // Função para validar a senha do cliente.
-int validarSenhaCliente(char *senhaDigitada)
+int validarSenhaCliente(char *senhaDigitada, char *numeroConta)
 {
   // Abre o arquivo no modo de leitura.
   FILE *file = fopen("clientes.txt", "r");
@@ -75,12 +76,19 @@ int validarSenhaCliente(char *senhaDigitada)
   }
 
   enviarTitulo();
+  // Pede pro usuário inserir o numero da conta.
+  printf("Por favor, digite o numero de sua conta: \n\n");
+  fflush(stdin); // Limpa o buffer do techado
+  // Recebe a string que foi digitada
+  gets(numeroConta);
+  system("cls");
+
+  enviarTitulo();
   // Pede pro usuário inserir a senha.
   printf("Por favor, digite a sua senha para acessar: \n\n");
   fflush(stdin); // Limpa o buffer do techado
   // Recebe a string que foi digitada
   gets(senhaDigitada);
-
   system("cls");
 
   // Declarando a variável que receberá a senha do cliente.
@@ -92,18 +100,14 @@ int validarSenhaCliente(char *senhaDigitada)
   // Verifica se a senha está correta.
   // if (strcmp(senhaDigitada, passCliente) != 0) // Compara duas strings
 
-  // Remover essa linha e voltar a de cima, estou apenas testando...
-  if (strcmp(senhaDigitada, "c123") != 0) // Compara duas strings
+  if (strcmp(senhaDigitada, "123") != 0 && (strcmp(numeroConta, "1") != 0)) // Compara duas strings
   {
     enviarTitulo();
 
-    printf("\nSenha incorreta, saindo do programa...\n");
+    printf("Numero da conta inexistente ou senha incorreta, tente novamente...\n");
     exit(1);
     return 1;
   }
-
-  // Mensagem de que a senha foi autenticada.
-  // printf("Voce foi autenticado com sucesso.\n");
 
   // Fechando o arquivo de clientes.
   fclose(file);
@@ -144,8 +148,8 @@ void visualizarSaldo()
 void depositar(float *saldo)
 {
   float valor;
-  char senhaDigitada;
-  validarSenhaCliente(&senhaDigitada);
+  char senhaDigitada, numeroConta;
+  validarSenhaCliente(&senhaDigitada, &numeroConta);
 
   enviarTitulo();
   printf("Digite o valor a ser depositado: \n\nR$");
@@ -183,8 +187,8 @@ void depositar(float *saldo)
 void sacar(float *saldo)
 {
   float valor;
-  char senhaDigitada;
-  validarSenhaCliente(&senhaDigitada);
+  char senhaDigitada, numeroConta;
+  validarSenhaCliente(&senhaDigitada, &numeroConta);
 
   enviarTitulo();
   printf("Digite o valor a ser retirado: \n\nR$");
@@ -552,10 +556,11 @@ void enviarMenuFuncionario()
   // Caso o arquivo exista e seja aberto com sucesso
   if (file != NULL)
   {
+    enviarTitulo();
     do
     {
       // Envia o menu de funcionários
-      printf("\n\nMenu funcionario:\n");
+      printf("Menu funcionario:\n\n");
       printf("1) Abertura de Conta\n");
       printf("2) Encerramento de Conta\n");
       printf("3) Consultar Dados\n");
@@ -564,6 +569,7 @@ void enviarMenuFuncionario()
       printf("6) Gerar Relatorios (Indisponivel)\n");
       printf("7) Sair\n\n");
       scanf("%d", &option);
+      system("cls");
 
       // Limpa todos os streams de entrada que estiverem abertos.
       fflush(file);
@@ -572,9 +578,6 @@ void enviarMenuFuncionario()
       switch (option)
       {
       case 1:
-        printf("Iniciando processo de abertura de conta...\n");
-
-        // Chamando a função que envia o menu de abertura de conta
         enviarMenuAberturaConta();
         break;
 
@@ -585,39 +588,46 @@ void enviarMenuFuncionario()
 
       case 3:
         int posicao;
+        enviarTitulo();
         fflush(stdin);
         printf("Digite o nome do funcionario desejado: \n");
         gets(funcionario.nomeFuncionario);
+        system("cls");
 
         if ((posicao = consultarFuncionario(file, funcionario)) != -1)
         {
           fseek(file, posicao * sizeof(funcionario), SEEK_SET);
           fread(&funcionario, sizeof(funcionario), 1, file);
 
-          printf("\nMostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
-          printf("---------------------------------------------\n");
-          printf("Nome: %s\n", funcionario.nomeFuncionario);
-          printf("Codigo: %s\n", funcionario.codigoFuncionario);
-          printf("Cargo: %s\n", funcionario.cargo);
-          printf("CPF: %s\n", funcionario.cpf);
-          printf("Data de Nascimento: %s/%s/%s\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
-                 funcionario.nascimento.ano);
-          printf("Telefone: %s\n", funcionario.telefoneContato);
-          printf("Endereco: %s\n", funcionario.endereco.endereco);
-          printf("CEP: %s\n", funcionario.endereco.cep);
-          printf("Bairro: %s\n", funcionario.endereco.bairro);
-          printf("Cidade: %s\n", funcionario.endereco.cidade);
-          printf("Estado: %s\n", funcionario.endereco.estado);
-          printf("Senha: %s\n", funcionario.senhaFuncionario);
-          printf("---------------------------------------------\n");
+          int contador;
+          for (int i = 0; i < 30; i++)
+          {
+            enviarTitulo();
+            printf("Mostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
+            printf("Codigo: %s\n", funcionario.codigoFuncionario);
+            printf("Cargo: %s\n", funcionario.cargo);
+            printf("CPF: %s\n", funcionario.cpf);
+            printf("Data de Nascimento: %s/%s/%s\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
+                   funcionario.nascimento.ano);
+            printf("Telefone: %s\n", funcionario.telefoneContato);
+            printf("Endereco: %s, %s, %s, %s, %s\n", funcionario.endereco.endereco, funcionario.endereco.cep,
+                   funcionario.endereco.bairro, funcionario.endereco.cidade,
+                   funcionario.endereco.estado);
+            // printf("Senha: %s\n", funcionario.senhaFuncionario);
 
-          printf("\n(!) Voce sera redirecionado ao menu de funcionario em alguns segundos (15s)...\n");
+            contador = 30 - i;
+            if (contador == 1)
+              printf("\n(!) Voltando ao menu de funcionarios em %d segundo...\n", contador);
+            else if (contador == 0)
+              printf("\n(!) Voltando ao menu de funcionarios...\n");
+            else
+              printf("\n(!) Voltando ao menu de funcionarios em %d segundos...\n", contador);
 
-          // Aguardar 15 segundos para executar as próximas linhas de código
-          sleep(15);
-          system("cls");
+            sleep(1); // Aguarda 1 segundo e envia a mensagem novamente.
+            system("cls");
+          }
 
-          // Envia o menu de funcionario novamente para o usuario
+          // Envia o menu de funcionario novamente para o usuario após 30 seg
           enviarMenuFuncionario();
         }
 
@@ -769,7 +779,7 @@ void enviarMenuFuncionario()
 void solicitarSenhaCliente()
 {
   // Variável que receberá a senha digitada pelo usuário
-  char password;
+  char password, numeroConta;
 
   // Variável que concederá acesso para o usuário
   int acesso = 0;
@@ -779,7 +789,7 @@ void solicitarSenhaCliente()
   {
     acesso = 0;
     // Verifica se o usuário recebeu acesso
-    if (validarSenhaCliente(&password) == 1)
+    if (validarSenhaCliente(&password, &numeroConta) == 1)
     {
       return;
     }

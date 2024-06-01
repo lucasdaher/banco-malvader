@@ -436,7 +436,9 @@ int inserirFuncionario(FILE *file, Funcionario funcionario)
 
       if (fwrite(&funcionario, sizeof(funcionario), 1, file))
       {
-        printf("O funcionario foi cadastrado com sucesso.\n\n");
+        enviarTitulo();
+        printf("O funcionario foi cadastrado com sucesso.\n");
+        printf("Pressione qualquer tecla para concluir o cadastro...\n");
         getch();
         return 1;
       }
@@ -502,11 +504,13 @@ void enviarMenuAberturaConta()
   int option;
   do
   {
-    printf("\nMenu funcionario:\n\n");
+    enviarTitulo();
+    printf("Menu funcionario:\n\n");
     printf("1) Conta Poupanca - CP\n");
     printf("2) Conta Corrente - CC\n");
-    printf("3) Voltar\n");
+    printf("3) Voltar\n\n");
     scanf("%d", &option);
+    system("cls");
 
     switch (option)
     {
@@ -520,12 +524,16 @@ void enviarMenuAberturaConta()
       break;
 
     case 3:
+      enviarTitulo();
       printf("Voltando para o menu do funcionario... \n");
+      system("cls");
       enviarMenuFuncionario();
       break;
 
     default:
+      enviarTitulo();
       printf("Voce selecionou uma opcao invalida, tente outra...\n");
+      system("cls");
     }
     // Executa o código acima enquanto option não for (1,2 ou 3)
   } while (option <= 0 || option > 3);
@@ -695,61 +703,89 @@ void enviarMenuFuncionario()
         break;
 
       case 5:
+        enviarTitulo();
         printf("Digite o nome do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.nomeFuncionario);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o codigo do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.codigoFuncionario);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o cargo do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.cargo);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o CPF do funcionario no formato (000.000.000-00): \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.cpf);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o dia da data de nascimento do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.nascimento.dia);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o mes da data de nascimento do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.nascimento.mes);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o ano da data de nascimento do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.nascimento.ano);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o telefone para contato: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.telefoneContato);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o endereco do funcionario (Maximo de 45 caracteres): \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.endereco.endereco);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o CEP do funcionario no formato (00000-000): \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.endereco.cep);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o bairro do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.endereco.bairro);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite a cidade do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.endereco.cidade);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite o estado do funcionario (Coloque em sigla: ex: DF): \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.endereco.estado);
+        system("cls");
 
+        enviarTitulo();
         printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
         fflush(stdin); // Limpa o buffer do teclado
         gets(funcionario.senhaFuncionario);
+        system("cls");
 
         // Requisita a função que insere os dados digitados no arquivo de funcionários
         inserirFuncionario(file, funcionario);
@@ -766,7 +802,9 @@ void enviarMenuFuncionario()
         break;
 
       default:
+        enviarTitulo();
         printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
+        system("cls");
       }
 
       // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
@@ -813,12 +851,15 @@ void solicitarSenhaFuncionario(int tipoDeMenu)
     // Bloqueando o acesso do funcionário até a autenticação da senha
     acesso = 0;
 
+    enviarTitulo();
     printf("Digite a sua senha: \n");
     scanf("%s", password); // Não precisa do & por se tratar de uma String
+    system("cls");
 
     // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
     if (validarSenhaAdmin(password) != 0)
     {
+      enviarTitulo();
       printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
       system("cls");
     }

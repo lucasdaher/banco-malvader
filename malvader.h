@@ -40,18 +40,25 @@ struct Funcionario
 
 struct Cliente
 {
+  char nomeCliente[25];
+  float saldo;
+  char excluido;
 };
 
 // Declaração de todas as funções utilizadas no projeto.
-void enviarMenuCliente();
-void enviarTitulo();
-void enviarMenuFuncionario();
-void solicitarSenhaFuncionario(int tipoDeMenu);
-void enviarMenuPrincipal();
-int consultarFuncionario(FILE *file, Funcionario funcionario);
-int inserirFuncionario(FILE *file, Funcionario funcionario);
-int validarSenhaAdmin(char *senhaDigitada);
-int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo);
+void enviarMenuCliente();                                                                         // Envia o menu de clientes
+void enviarTitulo();                                                                              // Enviar título ASCII para o usuário antes das mensagens
+void enviarMenuFuncionario();                                                                     // Envia o menu de funcionarios
+void enviarMenuPrincipal();                                                                       // Envia o menu principal
+void solicitarSenhaFuncionario(int tipoDeMenu);                                                   // Solicita a senha do funcionário
+void solicitarSenhaCliente();                                                                     // Solicita a senha do cliente
+int consultarCliente(FILE *file, Cliente cliente);                                                // Consulta os dados de um cliente
+int inserirCliente(FILE *file, Cliente cliente);                                                  // Insere dados de um cliente no arquivo
+int alterarCliente(FILE *file, Cliente cliente);                                                  // Altera os dados de um cliente do arquivo
+int consultarFuncionario(FILE *file, Funcionario funcionario);                                    // Consulta os dados de um funcionário
+int inserirFuncionario(FILE *file, Funcionario funcionario);                                      // Insere dados de um funcionário no arquivo
+int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo); // Altera os dados de um funcionário do arquivo
+int validarSenhaAdmin(char *senhaDigitada);                                                       // Valida a senha de administrador digitada pelo usuário
 
 // Função para validar a senha do cliente.
 int validarSenhaCliente(char *senhaDigitada)
@@ -219,6 +226,71 @@ void sacar(float *saldo)
 
   // Enviar o menu de clientes novamente para o usuário.
   enviarMenuCliente();
+}
+
+// Função que consulta dados de clientes nos arquivos.
+int consultarCliente(FILE *file, Cliente cliente)
+{
+  Cliente cliente_lido;
+  int posicao;
+
+  if (file != NULL)
+  {
+    fseek(file, 0L, SEEK_SET);
+    posicao = 0;
+
+    // Enquanto não for encontrado
+    while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
+    {
+      if (strcmpi(cliente_lido.nomeCliente, cliente.nomeCliente) == 0 &&
+          (cliente_lido.excluido == 0))
+        return posicao;
+      posicao++;
+    };
+  }
+  // Retorna este valor caso nada seja encontrado.
+  return -1;
+}
+
+// Função que insere os dados dos clientes nos arquivos.
+int inserirCliente(FILE *file, Cliente cliente)
+{
+  Cliente cliente_lido;
+  int posicao;
+
+  if (file != NULL)
+  {
+    posicao = 0;
+
+    // Procurar se a estrutura do funcionário existe no arquivo.
+    if (consultarCliente(file, cliente))
+    {
+      // Definindo o ponteiro de busca no início do arquivo
+      fseek(file, 0L, SEEK_SET);
+
+      // Vai rodar enquanto não chegar ao fim do arquivo
+      while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
+      {
+        if (cliente_lido.excluido == 1)
+          break;
+        posicao++;
+      };
+
+      fseek(file, posicao * sizeof(cliente), SEEK_SET);
+      cliente.excluido = 0;
+
+      if (fwrite(&cliente, sizeof(cliente), 1, file))
+      {
+        enviarTitulo();
+        printf("O cliente foi cadastrado com sucesso.\n");
+        printf("Pressione qualquer tecla para confirmar o registro.\n");
+        system("cls");
+        getch();
+        return 1;
+      }
+    }
+  }
+  return 0;
 }
 
 // Função que envia o menu de clientes após autenticação.

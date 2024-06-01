@@ -44,7 +44,6 @@ struct Cliente
 
 // Declaração de todas as funções utilizadas no projeto.
 void enviarMenuCliente();
-void limparMensagens(int quantidadeDeLinhas);
 void enviarTitulo();
 void enviarMenuFuncionario();
 void solicitarSenhaFuncionario(int tipoDeMenu);

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <locale.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define MAX_PASSWORD_SIZE 6
 #define DEFAULT_SIZE 128
@@ -37,6 +38,11 @@ struct Funcionario
   char excluido;
 };
 
+struct Cliente
+{
+};
+
+// Declaração de todas as funções utilizadas no projeto.
 void enviarMenuCliente();
 void limparMensagens(int quantidadeDeLinhas);
 void enviarTitulo();
@@ -216,12 +222,20 @@ void sacar(float *saldo)
   enviarMenuCliente();
 }
 
+// Função que envia o menu de clientes após autenticação.
 void enviarMenuCliente()
 {
-  float saldo = 1000.0;
+  FILE *file = fopen("clientes.txt", "r");
+
+  if (file == NULL)
+  {
+    printf("O registro de clientes não foi encontrado no sistema, gerando um novo.\n\n");
+    file = fopen("clientes.txt", "w+"); // Tentativa de criar o arquivo
+  }
+
+  float saldo = 100.0;
 
   enviarTitulo();
-
   int opcao;
   do
   {
@@ -249,20 +263,19 @@ void enviarMenuCliente()
       sacar(&saldo);
       break;
 
+    case 6:
+      enviarTitulo();
+      printf("Voce escolheu sair do programa, desconectando da sua conta... \n");
+      system("pause");
+      exit(1);
+
     default:
       printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
       break;
     }
-
   } while (opcao <= 0 || opcao > 6);
-}
 
-void limparMensagens(int quantidadeDeLinhas)
-{
-  for (int i = 0; i < quantidadeDeLinhas; i++)
-  {
-    printf("\n");
-  }
+  fclose(file);
 }
 
 struct ContaPoupanca
@@ -357,7 +370,7 @@ int inserirFuncionario(FILE *file, Funcionario funcionario)
   return 0;
 }
 
-// Adicionar validação pela senha do funcionário contida no arquivo
+// Adicionar validação pela senha do funcionário contida no arquivo.
 // Função que realiza a validação da senha administrativa.
 int validarSenhaAdmin(char *senhaDigitada)
 {
@@ -375,7 +388,7 @@ int validarSenhaAdmin(char *senhaDigitada)
   return 0;
 }
 
-// Função que altera os dados de um funcionário
+// Função que altera os dados de um funcionário.
 int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo)
 {
   int posicao;
@@ -407,7 +420,7 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
   return 0;
 }
 
-// Função que envia o menu de abertura de conta
+// Função que envia o menu de abertura de conta.
 void enviarMenuAberturaConta()
 {
   // Variavel que vai armazenar a opcao desejada pelo usuario
@@ -443,7 +456,7 @@ void enviarMenuAberturaConta()
   } while (option <= 0 || option > 3);
 }
 
-// Função que envia o menu do funcionario
+// Função que envia o menu do funcionario.
 void enviarMenuFuncionario()
 {
   // Declaração do arquivo
@@ -531,9 +544,7 @@ void enviarMenuFuncionario()
 
           // Aguardar 15 segundos para executar as próximas linhas de código
           sleep(15);
-
-          // Requisita a função que realiza a limpeza das mensagens
-          limparMensagens(100);
+          system("cls");
 
           // Envia o menu de funcionario novamente para o usuario
           enviarMenuFuncionario();
@@ -683,27 +694,33 @@ void enviarMenuFuncionario()
   }
 }
 
+// Função que verifica a autenticação do cliente.
 void solicitarSenhaCliente()
 {
+  // Variável que receberá a senha digitada pelo usuário
   char password;
+
+  // Variável que concederá acesso para o usuário
   int acesso = 0;
 
+  // Inicializa o laço de repetição
   do
   {
     acesso = 0;
-
+    // Verifica se o usuário recebeu acesso
     if (validarSenhaCliente(&password) == 1)
     {
       return;
     }
 
+    // Caso a senha seja validada, o usuário receberá acesso
     acesso = 1;
     enviarMenuCliente();
 
   } while (acesso == 0);
 }
 
-// Função para solicitar a senha do funcionario
+// Função para solicitar a senha do funcionario.
 void solicitarSenhaFuncionario(int tipoDeMenu)
 {
   // Definindo a váriavel de senha que o usuário irá digitar
@@ -744,6 +761,7 @@ void solicitarSenhaFuncionario(int tipoDeMenu)
   } while (acesso == 0);
 }
 
+// Função que envia o título em ASCII para o usuário antes de alguma mensagem.
 void enviarTitulo()
 {
   char title[7][91] = {
@@ -781,7 +799,7 @@ void enviarTitulo()
   printf("------------------------------------------------------------------------------------------\n\n");
 }
 
-// Função para enviar o menu principal
+// Função para enviar o menu principal.
 void enviarMenuPrincipal()
 {
 

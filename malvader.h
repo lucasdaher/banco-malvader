@@ -730,7 +730,8 @@ void enviarMenuFuncionario()
         enviarTitulo();
         printf("Digite o dia da data de nascimento do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.nascimento.dia);
+        // gets(funcionario.nascimento.dia);
+        scanf("%s", funcionario.nascimento.dia);
         system("cls");
 
         enviarTitulo();

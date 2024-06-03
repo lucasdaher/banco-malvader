@@ -11,9 +11,9 @@
 
 struct Data
 {
-  char dia[2];
-  char mes[2];
-  char ano[4];
+  int dia;
+  int mes;
+  int ano;
 };
 
 struct Endereco
@@ -23,6 +23,20 @@ struct Endereco
   char bairro[20];
   char cidade[20];
   char estado[4]; // O usuário deve informar em SIGLA
+};
+
+struct Cliente {
+  int id;
+  int agencia;
+  int numDaConta;
+  float limiteDaConta;
+  char nome[DEFAULT_SIZE];
+  char cpf[15];
+  struct Data nascimento;
+  char telefone[14];
+  struct Endereco endereco;
+  char senha[16];
+  char excluido;
 };
 
 struct Funcionario
@@ -38,13 +52,6 @@ struct Funcionario
   char excluido;
 };
 
-struct Cliente
-{
-  char nomeCliente[25];
-  float saldo;
-  char excluido;
-};
-
 // Declaração de todas as funções utilizadas no projeto.
 void enviarMenuCliente();                                                                         // Envia o menu de clientes
 void enviarTitulo();                                                                              // Enviar título ASCII para o usuário antes das mensagens
@@ -52,9 +59,6 @@ void enviarMenuFuncionario();                                                   
 void enviarMenuPrincipal();                                                                       // Envia o menu principal
 void solicitarSenhaFuncionario(int tipoDeMenu);                                                   // Solicita a senha do funcionário
 void solicitarSenhaCliente();                                                                     // Solicita a senha do cliente
-int consultarCliente(FILE *file, Cliente cliente);                                                // Consulta os dados de um cliente
-int inserirCliente(FILE *file, Cliente cliente);                                                  // Insere dados de um cliente no arquivo
-int alterarCliente(FILE *file, Cliente cliente);                                                  // Altera os dados de um cliente do arquivo
 int consultarFuncionario(FILE *file, Funcionario funcionario);                                    // Consulta os dados de um funcionário
 int inserirFuncionario(FILE *file, Funcionario funcionario);                                      // Insere dados de um funcionário no arquivo
 int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo); // Altera os dados de um funcionário do arquivo
@@ -232,71 +236,6 @@ void sacar(float *saldo)
   enviarMenuCliente();
 }
 
-// Função que consulta dados de clientes nos arquivos.
-int consultarCliente(FILE *file, Cliente cliente)
-{
-  Cliente cliente_lido;
-  int posicao;
-
-  if (file != NULL)
-  {
-    fseek(file, 0L, SEEK_SET);
-    posicao = 0;
-
-    // Enquanto não for encontrado
-    while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
-    {
-      if (strcmpi(cliente_lido.nomeCliente, cliente.nomeCliente) == 0 &&
-          (cliente_lido.excluido == 0))
-        return posicao;
-      posicao++;
-    };
-  }
-  // Retorna este valor caso nada seja encontrado.
-  return -1;
-}
-
-// Função que insere os dados dos clientes nos arquivos.
-int inserirCliente(FILE *file, Cliente cliente)
-{
-  Cliente cliente_lido;
-  int posicao;
-
-  if (file != NULL)
-  {
-    posicao = 0;
-
-    // Procurar se a estrutura do funcionário existe no arquivo.
-    if (consultarCliente(file, cliente))
-    {
-      // Definindo o ponteiro de busca no início do arquivo
-      fseek(file, 0L, SEEK_SET);
-
-      // Vai rodar enquanto não chegar ao fim do arquivo
-      while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
-      {
-        if (cliente_lido.excluido == 1)
-          break;
-        posicao++;
-      };
-
-      fseek(file, posicao * sizeof(cliente), SEEK_SET);
-      cliente.excluido = 0;
-
-      if (fwrite(&cliente, sizeof(cliente), 1, file))
-      {
-        enviarTitulo();
-        printf("O cliente foi cadastrado com sucesso.\n");
-        printf("Pressione qualquer tecla para confirmar o registro.\n");
-        system("cls");
-        getch();
-        return 1;
-      }
-    }
-  }
-  return 0;
-}
-
 // Função que envia o menu de clientes após autenticação.
 void enviarMenuCliente()
 {
@@ -352,34 +291,6 @@ void enviarMenuCliente()
 
   fclose(file);
 }
-
-struct ContaPoupanca
-{
-  int id;
-  int agencia;
-  int numeroDaConta;
-  char nomeCliente[DEFAULT_SIZE];
-  int cpf;
-  struct Data nascimento;
-  int telefoneContato;
-  struct Endereco endereco;
-  char senhaDoClienteCp[MAX_PASSWORD_SIZE];
-};
-
-struct ContaCorrente
-{
-  int id;
-  int agencia;
-  int numeroDaConta;
-  float limiteDaConta;
-  struct Data vencimento;
-  char nomeCliente[DEFAULT_SIZE];
-  int cpf;
-  struct Data nascimento;
-  int telefoneContato;
-  struct Endereco endereco;
-  char senhaDoClienteCc[MAX_PASSWORD_SIZE];
-};
 
 // Função que realiza a consulta nos arquivos sobre um funcionário
 int consultarFuncionario(FILE *file, Funcionario funcionario)
@@ -611,17 +522,18 @@ void enviarMenuFuncionario()
           for (int i = 0; i < 30; i++)
           {
             enviarTitulo();
+            fflush(stdin);
             printf("Mostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
             printf("Codigo: %s\n", funcionario.codigoFuncionario);
             printf("Cargo: %s\n", funcionario.cargo);
             printf("CPF: %s\n", funcionario.cpf);
-            printf("Data de Nascimento: %s/%s/%s\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
+            printf("Data de Nascimento: %d/%d/%d\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
                    funcionario.nascimento.ano);
             printf("Telefone: %s\n", funcionario.telefoneContato);
             printf("Endereco: %s, %s, %s, %s, %s\n", funcionario.endereco.endereco, funcionario.endereco.cep,
                    funcionario.endereco.bairro, funcionario.endereco.cidade,
                    funcionario.endereco.estado);
-            // printf("Senha: %s\n", funcionario.senhaFuncionario);
+            printf("Senha: %s\n", funcionario.senhaFuncionario);
 
             contador = 30 - i;
             if (contador == 1)
@@ -728,22 +640,8 @@ void enviarMenuFuncionario()
         system("cls");
 
         enviarTitulo();
-        printf("Digite o dia da data de nascimento do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        // gets(funcionario.nascimento.dia);
-        scanf("%s", funcionario.nascimento.dia);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o mes da data de nascimento do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.nascimento.mes);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o ano da data de nascimento do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.nascimento.ano);
+        printf("Digite o dia, mes e ano - 11/22/3333: \n");
+        scanf("%d %d %d", funcionario.nascimento.dia, funcionario.nascimento.mes, funcionario.nascimento.ano);
         system("cls");
 
         enviarTitulo();
@@ -790,16 +688,6 @@ void enviarMenuFuncionario()
 
         // Requisita a função que insere os dados digitados no arquivo de funcionários
         inserirFuncionario(file, funcionario);
-        break;
-
-      case 6:
-        printf("Em desenvolvimento...");
-        system("pause");
-        break;
-
-      case 7:
-        printf("Saindo do programa... \n");
-        system("pause");
         break;
 
       default:

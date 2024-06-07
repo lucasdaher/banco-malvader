@@ -19,7 +19,7 @@ struct Data
 struct Endereco
 {
   char endereco[45]; // Maximo de 45 caracteres
-  char cep[9];
+  char cep[10];      // Padrão 9
   char bairro[20];
   char cidade[20];
   char estado[4]; // O usuário deve informar em SIGLA
@@ -45,7 +45,7 @@ struct Funcionario
 {
   char nomeFuncionario[25];
   char cpf[14];
-  char codigoFuncionario[3];
+  int codigoFuncionario;
   char cargo[25];
   struct Data nascimento;
   char telefoneContato[15];
@@ -433,12 +433,12 @@ void enviarMenuAberturaConta()
 
       printf("Informe o numero da agencia: \n");
       fflush(stdin);
-      scanf("%d", cliente.agencia);
+      scanf("%d", &cliente.agencia);
       system("cls");
 
       printf("Informe o numero da conta: \n");
       fflush(stdin);
-      scanf("%d", cliente.numDaConta);
+      scanf("%d", &cliente.numDaConta);
       system("cls");
 
       printf("Informe o nome do cliente: \n");
@@ -446,13 +446,13 @@ void enviarMenuAberturaConta()
       gets(cliente.nome);
       system("cls");
 
-      printf("Informe o cpf do cliente: \n");
+      printf("Informe o CPF do cliente: \n");
       fflush(stdin);
       gets(cliente.cpf);
       system("cls");
 
       printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
-      scanf("%d %d %d", cliente.nascimento.dia, cliente.nascimento.mes, cliente.nascimento.ano);
+      scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
       system("cls");
 
       printf("Informe o telefone de contato do cliente: \n");
@@ -460,7 +460,7 @@ void enviarMenuAberturaConta()
       gets(cliente.telefone);
       system("cls");
 
-      printf("Informe o endereço do cliente: \n");
+      printf("Informe o endereco do cliente: \n");
       fflush(stdin);
       gets(cliente.endereco.endereco);
       system("cls");
@@ -489,24 +489,26 @@ void enviarMenuAberturaConta()
       fflush(stdin);
       gets(cliente.senha);
       system("cls");
+
+      // Adicionar para salvar no arquivo.
+
       break;
 
     case 2:
       printf("Iniciando processo de criacao de conta corrente... \n\n");
 
       printf("Informe o numero da agencia: \n");
-      fflush(stdin);
-      scanf("%d", cliente.agencia);
+      scanf("%d", &cliente.agencia);
       system("cls");
 
       printf("Informe o numero da conta: \n");
       fflush(stdin);
-      scanf("%d", cliente.numDaConta);
+      scanf("%d", &cliente.numDaConta);
       system("cls");
 
       printf("Informe o limite da conta: \n");
       fflush(stdin);
-      scanf("%f", cliente.limiteDaConta);
+      scanf("%f", &cliente.limiteDaConta);
       system("cls");
 
       printf("Informe o nome do cliente: \n");
@@ -520,7 +522,7 @@ void enviarMenuAberturaConta()
       system("cls");
 
       printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
-      scanf("%d %d %d", cliente.nascimento.dia, cliente.nascimento.mes, cliente.nascimento.ano);
+      scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
       system("cls");
 
       printf("Informe o telefone de contato do cliente: \n");
@@ -574,6 +576,14 @@ void enviarMenuAberturaConta()
     }
     // Executa o código acima enquanto option não for (1,2 ou 3)
   } while (option <= 0 || option > 3);
+}
+
+void limparBuffer()
+{
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF)
+  {
+  }
 }
 
 // Função que envia o menu do funcionario.
@@ -650,7 +660,7 @@ void enviarMenuFuncionario()
             enviarTitulo();
             fflush(stdin);
             printf("Mostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
-            printf("Codigo: %s\n", funcionario.codigoFuncionario);
+            printf("Codigo: %d\n", funcionario.codigoFuncionario);
             printf("Cargo: %s\n", funcionario.cargo);
             printf("CPF: %s\n", funcionario.cpf);
             printf("Data de Nascimento: %d/%d/%d\n", funcionario.nascimento.dia, funcionario.nascimento.mes,
@@ -673,6 +683,7 @@ void enviarMenuFuncionario()
             system("cls");
           }
 
+          // Envia o menu de funcionario novamente para o usuario após 30 seg
           // Envia o menu de funcionario novamente para o usuario após 30 seg
           enviarMenuFuncionario();
         }
@@ -750,7 +761,7 @@ void enviarMenuFuncionario()
         enviarTitulo();
         printf("Digite o codigo do funcionario: \n");
         fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.codigoFuncionario);
+        scanf("%d", &funcionario.codigoFuncionario);
         system("cls");
 
         enviarTitulo();
@@ -767,7 +778,7 @@ void enviarMenuFuncionario()
 
         enviarTitulo();
         printf("Digite o dia, mes e ano - 11/22/3333: \n");
-        scanf("%d %d %d", funcionario.nascimento.dia, funcionario.nascimento.mes, funcionario.nascimento.ano);
+        scanf("%d %d %d", &funcionario.nascimento.dia, &funcionario.nascimento.mes, &funcionario.nascimento.ano);
         system("cls");
 
         enviarTitulo();
@@ -806,11 +817,27 @@ void enviarMenuFuncionario()
         gets(funcionario.endereco.estado);
         system("cls");
 
-        enviarTitulo();
-        printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.senhaFuncionario);
-        system("cls");
+        // Verificar se a senha atende os requisitos e coletar as informações.
+        do
+        {
+          enviarTitulo();
+          printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
+          fflush(stdin); // Limpa o buffer do teclado
+          gets(funcionario.senhaFuncionario);
+
+          if (strlen(funcionario.senhaFuncionario) == 0)
+          {
+            printf("A senha nao pode ser vazia.\n");
+            system("cls");
+          }
+          else if (strlen(funcionario.senhaFuncionario) > 16)
+          {
+            printf("A senha excede o limite de 16 caracteres.\n");
+            printf("Pressione qualquer tecla para tentar novamente...\n");
+            limparBuffer(); // Limpa o buffer caso a senha seja muito longa.
+            system("cls");
+          }
+        } while (strlen(funcionario.senhaFuncionario) == 0 || strlen(funcionario.senhaFuncionario) > 16);
 
         // Requisita a função que insere os dados digitados no arquivo de funcionários
         inserirFuncionario(file, funcionario);

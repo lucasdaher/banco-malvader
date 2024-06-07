@@ -360,6 +360,31 @@ int inserirFuncionario(FILE *file, Funcionario funcionario)
   return 0;
 }
 
+// Função que exclui um funcionário dos registros.
+int excluirFuncionario(FILE *file, Funcionario funcionario)
+{
+  int posicao;
+  if (file != NULL)
+  {
+    posicao = consultarFuncionario(file, funcionario);
+    // Caso seja válido
+    if (posicao != -1)
+    {
+      fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+      funcionario.excluido = 1;
+      if (fwrite(&funcionario, sizeof(funcionario), 1, file))
+      {
+        enviarTitulo();
+        printf("Voce excluiu este funcionario dos registros com sucesso.\n");
+        printf("Pressione qualquer tecla para finalizar...\n");
+        system("cls");
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
 // Adicionar validação pela senha do funcionário contida no arquivo.
 // Função que realiza a validação da senha administrativa.
 int validarSenhaAdmin(char *senhaDigitada)
@@ -637,8 +662,12 @@ void enviarMenuFuncionario()
         break;
 
       case 2:
-        printf("Em desenvolvimento...");
-        system("pause");
+        enviarTitulo();
+        printf("Digite o nome do funcionario que tera a conta encerrada: \n");
+        fflush(stdin); // Limpa o buffer do teclado
+        gets(funcionario.nomeFuncionario);
+        excluirFuncionario(file, funcionario); // Requisita a função que exclui um funcionário
+        system("cls");
         break;
 
       case 3:

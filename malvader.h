@@ -414,6 +414,7 @@ void enviarMenuAberturaConta()
 {
   // Variavel que vai armazenar a opcao desejada pelo usuario
   int option;
+  struct Cliente cliente;
   do
   {
     enviarTitulo();

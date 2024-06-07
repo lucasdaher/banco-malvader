@@ -1,7 +1,16 @@
+# Todas as pastas de saída
 output/*.txt
 output/*.exe
 output/main.exe
 output/*
 
+# Itens do cmake
 cmake-build-debug
 cmake-build-debug/*
+
+# Pastas geradas pelo CLion
+.idea/*
+
+# Pastas geradas pelo Vscode
+.vscode
+.vscode/*

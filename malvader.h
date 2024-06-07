@@ -34,6 +34,7 @@ struct Cliente
   char nome[DEFAULT_SIZE];
   char cpf[15];
   struct Data nascimento;
+  struct Data vencimento;
   char telefone[14];
   struct Endereco endereco;
   char senha[16];
@@ -682,6 +683,7 @@ void enviarMenuFuncionario()
             system("cls");
           }
 
+          // Envia o menu de funcionario novamente para o usuario após 30 seg
           // Envia o menu de funcionario novamente para o usuario após 30 seg
           enviarMenuFuncionario();
         }

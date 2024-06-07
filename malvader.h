@@ -25,7 +25,8 @@ struct Endereco
   char estado[4]; // O usuário deve informar em SIGLA
 };
 
-struct Cliente {
+struct Cliente
+{
   int id;
   int agencia;
   int numDaConta;
@@ -33,6 +34,7 @@ struct Cliente {
   char nome[DEFAULT_SIZE];
   char cpf[15];
   struct Data nascimento;
+  struct Data vencimento;
   char telefone[14];
   struct Endereco endereco;
   char senha[16];
@@ -413,6 +415,7 @@ void enviarMenuAberturaConta()
 {
   // Variavel que vai armazenar a opcao desejada pelo usuario
   int option;
+  struct Cliente cliente;
   do
   {
     enviarTitulo();
@@ -427,11 +430,134 @@ void enviarMenuAberturaConta()
     {
     case 1:
       printf("Iniciando processo de criacao de conta poupanca... \n\n");
-      // Envia o processo de criação de conta poupança para o funcionário
-      // adicionar função de criação de conta
+
+      printf("Informe o numero da agencia: \n");
+      fflush(stdin);
+      scanf("%d", cliente.agencia);
+      system("cls");
+
+      printf("Informe o numero da conta: \n");
+      fflush(stdin);
+      scanf("%d", cliente.numDaConta);
+      system("cls");
+
+      printf("Informe o nome do cliente: \n");
+      fflush(stdin);
+      gets(cliente.nome);
+      system("cls");
+
+      printf("Informe o cpf do cliente: \n");
+      fflush(stdin);
+      gets(cliente.cpf);
+      system("cls");
+
+      printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
+      scanf("%d %d %d", cliente.nascimento.dia, cliente.nascimento.mes, cliente.nascimento.ano);
+      system("cls");
+
+      printf("Informe o telefone de contato do cliente: \n");
+      fflush(stdin);
+      gets(cliente.telefone);
+      system("cls");
+
+      printf("Informe o endereço do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.endereco);
+      system("cls");
+
+      printf("Informe o CEP do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.cep);
+      system("cls");
+
+      printf("Informe o bairro do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.bairro);
+      system("cls");
+
+      printf("Informe a cidade do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.cidade);
+      system("cls");
+
+      printf("Informe o estado do cliente (em SIGLA): \n");
+      fflush(stdin);
+      gets(cliente.endereco.estado);
+      system("cls");
+
+      printf("Informe a senha do cliente: \n");
+      fflush(stdin);
+      gets(cliente.senha);
+      system("cls");
       break;
 
     case 2:
+      printf("Iniciando processo de criacao de conta corrente... \n\n");
+
+      printf("Informe o numero da agencia: \n");
+      fflush(stdin);
+      scanf("%d", cliente.agencia);
+      system("cls");
+
+      printf("Informe o numero da conta: \n");
+      fflush(stdin);
+      scanf("%d", cliente.numDaConta);
+      system("cls");
+
+      printf("Informe o limite da conta: \n");
+      fflush(stdin);
+      scanf("%f", cliente.limiteDaConta);
+      system("cls");
+
+      printf("Informe o nome do cliente: \n");
+      fflush(stdin);
+      gets(cliente.nome);
+      system("cls");
+
+      printf("Informe o cpf do cliente: \n");
+      fflush(stdin);
+      gets(cliente.cpf);
+      system("cls");
+
+      printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
+      scanf("%d %d %d", cliente.nascimento.dia, cliente.nascimento.mes, cliente.nascimento.ano);
+      system("cls");
+
+      printf("Informe o telefone de contato do cliente: \n");
+      fflush(stdin);
+      gets(cliente.telefone);
+      system("cls");
+
+      printf("Informe o endereço do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.endereco);
+      system("cls");
+
+      printf("Informe o CEP do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.cep);
+      system("cls");
+
+      printf("Informe o bairro do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.bairro);
+      system("cls");
+
+      printf("Informe a cidade do cliente: \n");
+      fflush(stdin);
+      gets(cliente.endereco.cidade);
+      system("cls");
+
+      printf("Informe o estado do cliente (em SIGLA): \n");
+      fflush(stdin);
+      gets(cliente.endereco.estado);
+      system("cls");
+
+      printf("Informe a senha do cliente: \n");
+      fflush(stdin);
+      gets(cliente.senha);
+      system("cls");
+
       break;
 
     case 3:

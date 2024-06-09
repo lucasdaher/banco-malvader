@@ -8,6 +8,7 @@
 
 #define MAX_PASSWORD_SIZE 6
 #define DEFAULT_SIZE 128
+#define DEFAULT_PASS_SIZE 16 // Tamanho máximo de uma senha
 
 struct Data
 {
@@ -903,7 +904,7 @@ void solicitarSenhaCliente()
       return;
     }
 
-    // Caso a senha seja validada, o usuário receberá acesso
+    // Caso a senha seja validada, o usuário receberá acesso.
     acesso = 1;
     enviarMenuCliente();
 
@@ -992,48 +993,128 @@ void enviarTitulo()
   printf("------------------------------------------------------------------------------------------\n\n");
 }
 
+void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
+{
+  int acesso;
+  int posicao;
+
+  char password[DEFAULT_PASS_SIZE];
+  char passwordAdm[DEFAULT_PASS_SIZE] = "adm";
+
+  do
+  {
+    acesso = 0;
+
+    if ((posicao = consultarFuncionario(file, funcionario)) != -1)
+    {
+      fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+      fread(&funcionario, sizeof(funcionario), 1, file);
+
+      enviarTitulo();
+      printf("Digite a senha: \n");
+      fflush(stdin);
+      gets(password);
+      system("cls");
+
+      // Compara a senha digitada pela senha do funcionario
+      if (strcmp(password, funcionario.senhaFuncionario) == 0) // Se der erro irá retornar 1, 0 é válido.
+      {
+        enviarTitulo();
+        printf("Autenticado(a) com sucesso.\n");
+        system("cls");
+
+        enviarMenuFuncionario();
+      }
+      else if (strcmp(password, passwordAdm) == 0)
+      {
+        enviarTitulo();
+        printf("Autenticado(a) utilizando a senha de administrador.\n");
+        system("cls");
+
+        enviarMenuFuncionario();
+      }
+      else
+      {
+        enviarTitulo();
+        printf("A senha digitada esta incorreta.\n");
+        exit(1);
+      }
+    }
+    else if ((posicao = consultarFuncionario(file, funcionario)) == -1 || (posicao = consultarFuncionario(file, funcionario)) == 1)
+    {
+      enviarTitulo();
+      printf("Este funcionario nao esta cadastrado.\n");
+      exit(1);
+    }
+  } while (acesso == 0); // Enquanto o acesso não for liberado.
+}
+
 // Função para enviar o menu principal.
 void enviarMenuPrincipal()
 {
-
-  // Variavel que vai receber a opção do menu que o usuário selecionar
+  FILE *file;
+  Funcionario funcionario;
   int option;
-  do
+
+  file = fopen("funcionarios.txt", "r+");
+
+  if (file == NULL)
   {
-    enviarTitulo();
-    // printf("Bem-vindo(a) ao Malvader Bank!\n\n");
-    printf("Escolha uma opcao do menu principal: \n\n");
-    printf("1) Funcionario\n");
-    printf("2) Cliente\n");
-    printf("3) Sair\n\n");
-    // Armazena a opção escolhida pelo usuario no endereço de memória de option
-    scanf("%d", &option);
-    system("cls");
+    printf("Arquivo não encontrado, recriando o arquivo...");
+    file = fopen("funcionarios.txt", "w+");
+  }
 
-    switch (option)
+  if (file != NULL)
+  {
+    do
     {
-    case 1:
-      // Chamando a função que solicita a senha para o funcionário ao acessar o menu
-      solicitarSenhaFuncionario(1); // 1 significa que será aberto o menu de funcionarios
-      break;
-
-    case 2:
-      // Enviar a autenticação da conta do cliente
-      solicitarSenhaCliente();
+      enviarTitulo();
+      // printf("Bem-vindo(a) ao Malvader Bank!\n\n");
+      printf("Escolha uma opcao do menu principal: \n\n");
+      printf("1) Funcionario\n");
+      printf("2) Cliente\n");
+      printf("3) Sair\n\n");
+      // Armazena a opção escolhida pelo usuario no endereço de memória de option
+      scanf("%d", &option);
       system("cls");
-      break;
 
-    case 3:
-      printf("Saindo do programa...");
-      system("pause");
-      exit(1);
-      break;
+      switch (option)
+      {
+      case 1:
+        // Chamando a função que solicita a senha para o funcionário ao acessar o menu
+        // solicitarSenhaFuncionario(1); // 1 significa que será aberto o menu de funcionarios
 
-      // Caso o usuario digite algo que não seja aceito ou que não exista
-    default:
-      printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
-    }
+        enviarTitulo();
+        printf("Digite o nome do funcionario: \n");
+        fflush(stdin); // Limpa o buffer do teclado
+        gets(funcionario.nomeFuncionario);
+        if (strcmp(funcionario.nomeFuncionario, "admin") == 0)
+        {
+          enviarMenuFuncionario();
+        }
+        system("cls");
 
-    // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
-  } while (option <= 0 || option > 3);
+        validarSenhaFuncionario(file, funcionario); // Requisita a função para validação da senha do funcionário.
+        break;
+
+      case 2:
+        // Enviar a autenticação da conta do cliente
+        solicitarSenhaCliente();
+        system("cls");
+        break;
+
+      case 3:
+        printf("Saindo do programa...");
+        system("pause");
+        exit(1);
+        break;
+
+        // Caso o usuario digite algo que não seja aceito ou que não exista
+      default:
+        printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
+      }
+
+      // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
+    } while (option <= 0 || option > 3);
+  }
 }

@@ -39,6 +39,7 @@ struct Cliente
   char telefone[14];
   struct Endereco endereco;
   char senha[16];
+  float saldo;
   char excluido;
 };
 
@@ -123,12 +124,19 @@ int validarSenhaCliente(char *senhaDigitada, char *numeroConta)
 }
 
 // Função que mostra o saldo do cliente.
-void visualizarSaldo()
+void visualizarSaldo (FILE *file, Cliente cliente, float *saldo)
 {
   // Adicionar a leitura do saldo do cliente em um arquivo
   // e adicionar o conteúdo do saldo na variável saldo.
+  float saldo = cliente.saldo;
 
-  float saldo = 0;
+  // Abrir o arquivo de clientes
+  file = fopen("clientes.txt", "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return -1; // Retorna um valor negativo para indicar um erro
+    }
+
   int contador;
 
   system("cls");

@@ -6,8 +6,11 @@
 #include <unistd.h>
 
 #define MAX_PASSWORD_SIZE 6
-#define DEFAULT_SIZE 128
 #define DEFAULT_PASS_SIZE 16 // Tamanho máximo de uma senha
+
+// Variável que receberá o nome do usuário quando ele se logar.
+// Irá armazenar o nome do usuário para que seja consultado depois pelo arquivo.
+char clienteLogado[25];
 
 struct Data
 {
@@ -18,20 +21,19 @@ struct Data
 
 struct Endereco
 {
-  char endereco[45]; // Maximo de 45 caracteres
-  char cep[10];      // Padrão 9
+  char endereco[45];
+  char cep[10];
   char bairro[20];
   char cidade[20];
-  char estado[4]; // O usuário deve informar em SIGLA
+  char estado[2];
 };
 
 struct Cliente
 {
-  int id;
+  char nome[25];
   int agencia;
   int numDaConta;
   float limiteDaConta;
-  char nome[DEFAULT_SIZE];
   char cpf[15];
   struct Data nascimento;
   struct Data vencimento;
@@ -56,94 +58,108 @@ struct Funcionario
 };
 
 // Declaração de todas as funções utilizadas no projeto.
-void enviarMenuCliente();                                                                         // Envia o menu de clientes
 void enviarTitulo();                                                                              // Enviar título ASCII para o usuário antes das mensagens
+void enviarMenuCliente();                                                                         // Envia o menu de clientes
 void enviarMenuFuncionario();                                                                     // Envia o menu de funcionarios
 void enviarMenuPrincipal();                                                                       // Envia o menu principal
-void solicitarSenhaFuncionario(int tipoDeMenu);                                                   // Solicita a senha do funcionário
-void solicitarSenhaCliente();                                                                     // Solicita a senha do cliente
 int consultarCliente(FILE *file, Cliente cliente);                                                // Consulta os dados de um cliente
 int inserirCliente(FILE *file, Cliente cliente);                                                  // Insere dados de um funcionário no arquivo
 int alterarCliente(FILE *file, Cliente cliente);                                                  // Alterar os dados de um cliente do arquivo
+int alterarSaldoCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo);                // Alterar o saldo de um cliente no arquivo.
 int consultarFuncionario(FILE *file, Funcionario funcionario);                                    // Consulta os dados de um funcionário
 int inserirFuncionario(FILE *file, Funcionario funcionario);                                      // Insere dados de um funcionário no arquivo
 int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo); // Alterar os dados de um funcionário do arquivo
 int validarSenhaAdmin(char *senhaDigitada);                                                       // Valida a senha de administrador digitada pelo usuário
 void validarSenhaCliente(FILE *file, Cliente cliente);                                            // Valida o usuario e senha de um cliente
 void validarSenhaFuncionario(FILE *file, Funcionario funcionario);                                // Valida o usuario e senha de um funcionario
+void visualizarSaldo(FILE *file, Cliente cliente);                                                // Mostrar o saldo de um cliente.
+void depositar(FILE *file, Cliente cliente);                                                      // Depositar um valor na conta de um cliente.
+void sacar(FILE *file, Cliente cliente);                                                          // Sacar um valor da conta de um cliente.
 
 // Função que mostra o saldo do cliente.
-void visualizarSaldo()
+void visualizarSaldo(FILE *file, Cliente cliente)
 {
-  // Adicionar a leitura do saldo do cliente em um arquivo
-  // e adicionar o conteúdo do saldo na variável saldo.
+  file = fopen("clientes.txt", "r+");
 
-  float saldo = 0;
-  int contador;
+  // Requisita o nome do cliente logado no banco.
+  strcpy(clienteLogado, cliente.nome);
+  int posicao;
 
-  system("cls");
-  for (int i = 0; i <= 10; i++)
+  if ((posicao = consultarCliente(file, cliente)) == -1)
   {
     enviarTitulo();
-    printf("Saldo atual em sua conta: R$%.2f\n\n", saldo);
-    contador = 10 - i;
-    if (contador == 1)
-      printf("(!) Voltando ao menu de clientes em %d segundo...\n", contador);
-    else if (contador == 0)
-      printf("(!) Voltando ao menu de clientes...\n");
-    else
-      printf("(!) Voltando ao menu de clientes em %d segundos...\n", contador);
-
-    sleep(1);
+    printf("O cliente informado nao existe nos arquivos...\n");
+    exit(1);
     system("cls");
+
+    return;
   }
 
-  enviarMenuCliente();
+  if ((posicao = consultarCliente(file, cliente)) != -1)
+  {
+    fseek(file, posicao * sizeof(cliente), SEEK_SET);
+    fread(&cliente, sizeof(cliente), 1, file);
+
+    enviarTitulo();
+    printf("Saldo atual em sua conta R$%.2f\n\n", cliente.saldo);
+    printf("Pressione qualquer tecla para voltar ao menu...\n");
+    getch();
+    system("cls");
+
+    enviarMenuCliente();
+
+    fclose(file);
+  }
 }
 
-// Função para realizar depósito.
-void depositar(float *saldo)
+// Função para depositar um valor na conta do cliente.
+void depositar(FILE *file, Cliente cliente)
 {
+  Cliente cliente_alterado;
+  file = fopen("clientes.txt", "r+");
+
+  if (file == NULL)
+  {
+    printf("O arquivo de clientes nao foi encontrado.\n");
+    return;
+  }
+
   float valor;
 
   enviarTitulo();
   printf("Digite o valor a ser depositado: \n\nR$");
+  fflush(stdin);
   scanf("%f", &valor);
 
-  // Recebe o valor e adiciona ao saldo do usuário.
-  *saldo += valor;
+  // Realizar o cálculo de depósito na conta do cliente.
+  float novoSaldo = cliente.saldo + valor;
+  cliente_alterado.saldo = novoSaldo;
 
-  int contador;
+  // Realiza a alteração do saldo do cliente no arquivo.
+  alterarSaldoCliente(file, cliente, cliente_alterado);
   system("cls");
-  // Inicializa um laço para a cada 1 segundo uma mensagem com o tempo atualizada ser enviada.
-  for (int i = 0; i <= 10; i++)
-  {
-    enviarTitulo();
 
-    printf("Voce realizou um deposito de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, *saldo);
-    // Diminui o tempo do contador a cada segundo que passa
-    contador = 10 - i;
-    if (contador == 1)
-      printf("(!) Voltando ao menu em %d segundo...\n", contador);
-    else if (contador == 0)
-      printf("(!) Voltando ao menu de clientes...\n");
-    else
-      printf("(!) Voltando ao menu em %d segundos...\n", contador);
-
-    sleep(1);
-    system("cls");
-  }
+  // Enviar a mensagem com o saldo do usuário
+  enviarTitulo();
+  printf("Voce realizou um deposito de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, cliente.saldo);
+  printf("Pressione qualquer tecla para retornar ao menu...\n");
+  getch();
+  system("cls");
 
   // Enviar o menu de clientes novamente para o usuário.
   enviarMenuCliente();
 }
 
 // Função para realizar saques.
-void sacar(FILE *file, Cliente cliente, float *saldo)
+void sacar(FILE *file, Cliente cliente)
 {
   file = fopen("clientes.txt", "r+");
+  float saldo;
 
-  if (file == NULL) {
+  strcpy(clienteLogado, cliente.nome);
+
+  if (file == NULL)
+  {
     printf("O arquivo nao foi encontrado, tentando gerar um novo.\n");
     file = fopen("clientes.txt", "w+");
   }
@@ -154,97 +170,27 @@ void sacar(FILE *file, Cliente cliente, float *saldo)
   scanf("%f", &valor);
   system("cls");
 
-  if (*saldo < valor)
+  if (saldo < valor)
   {
     enviarTitulo();
     printf("Voce nao possui saldo suficiente para realizar este saque.\n");
     printf("Por questoes de seguranca, estamos saindo do programa...\n");
     exit(1);
+    system("cls");
     return;
   }
 
   // Recebe o valor e adiciona ao saldo do usuário.
-  *saldo -= valor;
+  saldo -= valor;
 
-  int contador;
+  enviarTitulo();
+  printf("Voce realizou um saque de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, saldo);
+  printf("Pressione qualquer tecla para voltar ao menu de clientes.\n");
+  getch();
   system("cls");
-  // Inicializa um laço para a cada 1 segundo uma mensagem com o tempo atualizada ser enviada.
-  for (int i = 0; i <= 10; i++)
-  {
-    enviarTitulo();
-    printf("Voce realizou um saque de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, *saldo);
-
-    printf("Pressione qualquer tecla para voltar ao menu de clientes.\n");
-    getch();
-    system("cls");
-  }
 
   // Enviar o menu de clientes novamente para o usuário.
-  enviarMenuCliente(file, cliente);
-}
-
-// Função que envia o menu de clientes após autenticação.
-void enviarMenuCliente(FILE *file, Cliente cliente)
-{
-  file = fopen("clientes.txt", "r");
-
-  if (file == NULL)
-  {
-    printf("O registro de clientes não foi encontrado no sistema, gerando um novo.\n");
-    file = fopen("clientes.txt", "w+"); // Tentativa de criar o arquivo
-  }
-
-  int posicao;
-
-  if (file != NULL)
-  {
-    enviarTitulo();
-    int opcao;
-
-    do
-    {
-      printf("Escolha uma opcao do menu de clientes: \n\n");
-      printf("1) Saldo\n");
-      printf("2) Deposito\n");
-      printf("3) Saque\n");
-      printf("4) Extrato\n");
-      printf("5) Consultar limite\n");
-      printf("6) Sair\n\n");
-      scanf("%d", &opcao);
-      system("cls");
-
-      switch (opcao)
-      {
-      case 1:
-        // Adicionar solicitação do nome do cliente
-        visualizarSaldo();
-        break;
-
-      case 2:
-        depositar(&saldo);
-        break;
-
-      case 3:
-        if ((posicao = consultarCliente(file, cliente)) != -1) {
-          saldo = cliente.saldo;
-        }
-        sacar(file, cliente, &saldo);
-        break;
-
-      case 6:
-        enviarTitulo();
-        printf("Voce escolheu sair do programa, desconectando da sua conta... \n");
-        system("pause");
-        exit(1);
-
-      default:
-        printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
-        break;
-      }
-    } while (opcao <= 0 || opcao > 6);
-
-    fclose(file);
-  }
+  enviarMenuCliente();
 }
 
 // Função que consulta a existência de um cliente num arquivo.
@@ -262,32 +208,6 @@ int consultarCliente(FILE *file, Cliente cliente)
     while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
     {
       if (strcmpi(cliente_lido.nome, cliente.nome) == 0 && (cliente_lido.excluido == 0))
-        return posicao;
-      posicao++;
-    };
-  }
-  return -1;
-}
-
-// Função que realiza a consulta nos arquivos sobre um funcionário
-int consultarFuncionario(FILE *file, Funcionario funcionario)
-{
-  Funcionario funcionario_lido;
-  int posicao;
-
-  // Caso o arquivo tenha sido aberto e lido com sucesso
-  if (file != NULL)
-  {
-    // Define o ponteiro de busca para o ínicio do código
-    fseek(file, 0L, SEEK_SET);
-
-    // Define a posição inicial para 0
-    posicao = 0;
-
-    while (fread(&funcionario_lido, sizeof(funcionario_lido), 1, file))
-    {
-      if (strcmpi(funcionario_lido.nomeFuncionario, funcionario.nomeFuncionario) == 0 &&
-          (funcionario_lido.excluido == 0))
         return posicao;
       posicao++;
     };
@@ -326,6 +246,31 @@ int inserirCliente(FILE *file, Cliente cliente)
         getch();
         return 1;
       }
+    }
+  }
+  return 0;
+}
+
+// Função que altera o saldo de um cliente no arquivo.
+int alterarSaldoCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo)
+{
+  int posicao;
+
+  if (file != NULL)
+  {
+    posicao = consultarCliente(file, cliente_antigo);
+    if (posicao != -1)
+    {
+      // Adicionar dados que serão alterados.
+
+      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
+      fread(&cliente_antigo, sizeof(cliente_antigo), 1, file);
+
+      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
+      fwrite(&cliente_antigo, sizeof(cliente_novo), 1, file);
+
+      printf("O saldo foi alterado com sucesso.\n");
+      return 1;
     }
   }
   return 0;
@@ -396,24 +341,6 @@ int excluirFuncionario(FILE *file, Funcionario funcionario)
   return 0;
 }
 
-// Adicionar validação pela senha do funcionário contida no arquivo.
-// Função que realiza a validação da senha administrativa.
-int validarSenhaAdmin(char *senhaDigitada)
-{
-  // Definindo a senha padrão para administrador.
-  const char *passAdmin = "adm";
-
-  // Verificação se a senha digitada está correta.
-  if (strcmp(senhaDigitada, passAdmin) != 0)
-  {
-    // Se o valor recebido for 1, o usuário não será autenticado por senha incorreta.
-    return 1;
-  }
-
-  // Se o valor recebido for 0, o usuário será autenticado.
-  return 0;
-}
-
 // Função que altera os dados de um funcionário.
 int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo)
 {
@@ -446,183 +373,454 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
   return 0;
 }
 
+// Função que realiza a consulta nos arquivos sobre um funcionário
+int consultarFuncionario(FILE *file, Funcionario funcionario)
+{
+  Funcionario funcionario_lido;
+  int posicao;
+
+  // Caso o arquivo tenha sido aberto e lido com sucesso
+  if (file != NULL)
+  {
+    // Define o ponteiro de busca para o ínicio do código
+    fseek(file, 0L, SEEK_SET);
+
+    // Define a posição inicial para 0
+    posicao = 0;
+
+    while (fread(&funcionario_lido, sizeof(funcionario_lido), 1, file))
+    {
+      if (strcmpi(funcionario_lido.nomeFuncionario, funcionario.nomeFuncionario) == 0 &&
+          (funcionario_lido.excluido == 0))
+        return posicao;
+      posicao++;
+    };
+  }
+  return -1;
+}
+
+// Função para validar e liberar o acesso do cliente ao menu.
+void validarSenhaCliente(FILE *file, Cliente cliente)
+{
+  int acesso;
+  int posicao;
+
+  char password[DEFAULT_PASS_SIZE];
+
+  do
+  {
+    // Bloqueando o acesso do usuário enquanto ele não valida a senha.
+    acesso = 0;
+
+    if ((posicao = consultarCliente(file, cliente)) != -1)
+    {
+      fseek(file, posicao * sizeof(cliente), SEEK_SET);
+      fread(&cliente, sizeof(cliente), 1, file);
+
+      enviarTitulo();
+      printf("Digite a senha: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(password);
+      system("cls");
+
+      if (strcmp(password, cliente.senha) == 0)
+      {
+        acesso = 1;
+        enviarTitulo();
+        printf("Autenticado com sucesso. \n");
+        system("cls");
+
+        enviarMenuCliente();
+      }
+      else
+      {
+        acesso = 0;
+        enviarTitulo();
+        printf("A senha digitada esta incorreta.\n");
+        exit(1); // Ao digitar a senha incorreta, o usuário sai do programa.
+      }
+    }
+  } while (acesso == 0);
+}
+
+// Função para validar e liberar o acesso do funcionário ao menu.
+void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
+{
+  int acesso;
+  int posicao;
+
+  char password[DEFAULT_PASS_SIZE];
+  char passwordAdm[DEFAULT_PASS_SIZE] = "adm";
+
+  do
+  {
+    acesso = 0;
+
+    if ((posicao = consultarFuncionario(file, funcionario)) != -1)
+    {
+      fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+      fread(&funcionario, sizeof(funcionario), 1, file);
+
+      enviarTitulo();
+      printf("Digite a senha: \n");
+      fflush(stdin);
+      gets(password);
+      system("cls");
+
+      // Compara a senha digitada pela senha do funcionario
+      if (strcmp(password, funcionario.senhaFuncionario) == 0) // Se der erro irá retornar 1, 0 é válido.
+      {
+        acesso = 1;
+        enviarTitulo();
+        printf("Autenticado(a) com sucesso.\n");
+        system("cls");
+
+        enviarMenuFuncionario();
+      }
+      else if (strcmp(password, passwordAdm) == 0)
+      {
+        acesso = 1;
+        enviarTitulo();
+        printf("Autenticado(a) utilizando a senha de administrador.\n");
+        system("cls");
+
+        enviarMenuFuncionario();
+      }
+      else
+      {
+        acesso = 0;
+        enviarTitulo();
+        printf("A senha digitada esta incorreta.\n");
+        exit(1);
+      }
+    }
+    else if ((posicao = consultarFuncionario(file, funcionario)) == -1 || (posicao = consultarFuncionario(file, funcionario)) == 1)
+    {
+      enviarTitulo();
+      printf("Este funcionario nao esta cadastrado.\n");
+      exit(1);
+    }
+  } while (acesso == 0); // Enquanto o acesso não for liberado.
+}
+
+// Função que realiza a validação da senha administrativa.
+int validarSenhaAdmin(char *senhaDigitada)
+{
+  // Definindo a senha padrão para administrador.
+  const char *passAdmin = "adm";
+
+  // Verificação se a senha digitada está correta.
+  if (strcmp(senhaDigitada, passAdmin) != 0)
+  {
+    // Se o valor recebido for 1, o usuário não será autenticado por senha incorreta.
+    return 1;
+  }
+
+  // Se o valor recebido for 0, o usuário será autenticado.
+  return 0;
+}
+
+// Função que envia o título em ASCII para o usuário antes de alguma mensagem.
+void enviarTitulo()
+{
+  char title[7][91] = {
+      "::::     ::::     :::     :::    :::     :::     :::     :::::::::  :::::::::: :::::::::  ",
+      "+:+:+: :+:+:+   :+: :+:   :+:    :+:     :+:   :+: :+:   :+:    :+: :+:        :+:    :+: ",
+      "+:+ +:+:+ +:+  +:+   +:+  +:+    +:+     +:+  +:+   +:+  +:+    +:+ +:+        +:+    +:+ ",
+      "+#+  +:+  +#+ +#++:++#++: +#+    +#+     +:+ +#++:++#++: +#+    +:+ +#++:++#   +#++:++#:  ",
+      "+#+       +#+ +#+     +#+ +#+     +#+   +#+  +#+     +#+ +#+    +#+ +#+        +#+    +#+ ",
+      "#+#       #+# #+#     #+# #+#      #+#+#+#   #+#     #+# #+#    #+# #+#        #+#    #+# ",
+      "###       ### ###     ### ########## ###     ###     ### #########  ########## ###    ### "};
+
+  char subtitle[7][91] = {
+      "                     :::::::::      :::     ::::    ::: :::    :::                        ",
+      "                     :+:    :+:   :+: :+:   :+:+:   :+: :+:   :+:                         ",
+      "                     +:+    +:+  +:+   +:+  :+:+:+  +:+ +:+  +:+                          ",
+      "                     +#++:++#+  +#++:++#++: +#+ +:+ +#+ +#++:++                           ",
+      "                     +#+    +#+ +#+     +#+ +#+  +#+#+# +#+  +#+                          ",
+      "                     #+#    #+# #+#     #+# #+#   #+#+# #+#   #+#                         ",
+      "                     #########  ###     ### ###    #### ###    ###                        "};
+
+  printf("------------------------------------------------------------------------------------------\n\n");
+  printf("\n");
+  // Enviar o titulo linha por linha
+  for (int i = 0; i < 7; i++)
+  {
+    printf("%s\n", title[i]);
+  }
+  printf("\n");
+  // Enviar o subtitulo linha por linha
+  for (int i = 0; i < 7; i++)
+  {
+    printf("%s\n", subtitle[i]);
+  }
+  printf("\n");
+  printf("------------------------------------------------------------------------------------------\n\n");
+}
+
+// Função que envia o menu de clientes após autenticação.
+void enviarMenuCliente()
+{
+  // Abre o arquivo de clientes.
+  FILE *file = fopen("clientes.txt", "r");
+  Cliente cliente;
+  // Repassa o nome salvo do cliente na variável para a struct.
+  strcpy(clienteLogado, cliente.nome);
+
+  int posicao;
+
+  if (file == NULL)
+  {
+    printf("O registro de clientes não foi encontrado no sistema, gerando um novo.\n");
+    file = fopen("clientes.txt", "w+"); // Tentativa de criar o arquivo
+  }
+
+  if (file != NULL)
+  {
+    enviarTitulo();
+    int opcao;
+
+    do
+    {
+      printf("Escolha uma opcao do menu de clientes: \n\n");
+      printf("1) Saldo\n");
+      printf("2) Deposito\n");
+      printf("3) Saque\n");
+      printf("4) Extrato\n");
+      printf("5) Consultar limite\n");
+      printf("6) Sair\n\n");
+      scanf("%d", &opcao);
+      system("cls");
+
+      switch (opcao)
+      {
+      case 1:
+        visualizarSaldo(file, cliente);
+        break;
+
+      case 2:
+        depositar(file, cliente);
+        break;
+
+      case 3:
+        sacar(file, cliente);
+        break;
+
+      case 6:
+        enviarTitulo();
+        printf("Voce escolheu sair do programa, desconectando da sua conta... \n");
+        system("pause");
+        exit(1);
+
+      default:
+        printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
+        break;
+      }
+    } while (opcao <= 0 || opcao > 6);
+
+    fclose(file);
+  }
+  fclose(file);
+}
+
 // Função que envia o menu de abertura de conta.
 void enviarMenuAberturaConta()
 {
+  FILE *file = fopen("clientes.txt", "r+");
+  Cliente cliente;
+
+  if (file == NULL)
+  {
+    printf("Arquivo nao encontrado, tentando gerar um novo...\n");
+    file = fopen("clientes.txt", "w+");
+  }
+
   // Variavel que vai armazenar a opcao desejada pelo usuario
   int option;
-  struct Cliente cliente;
-  do
-  {
-    enviarTitulo();
-    printf("Menu funcionario:\n\n");
-    printf("1) Conta Poupanca - CP\n");
-    printf("2) Conta Corrente - CC\n");
-    printf("3) Voltar\n\n");
-    scanf("%d", &option);
-    system("cls");
 
-    switch (option)
+  if (file != NULL)
+  {
+    do
     {
-    case 1:
-      printf("Iniciando processo de criacao de conta poupanca... \n\n");
-
-      printf("Informe o numero da agencia: \n");
-      fflush(stdin);
-      scanf("%d", &cliente.agencia);
-      system("cls");
-
-      printf("Informe o numero da conta: \n");
-      fflush(stdin);
-      scanf("%d", &cliente.numDaConta);
-      system("cls");
-
-      printf("Informe o nome do cliente: \n");
-      fflush(stdin);
-      gets(cliente.nome);
-      system("cls");
-
-      printf("Informe o CPF do cliente: \n");
-      fflush(stdin);
-      gets(cliente.cpf);
-      system("cls");
-
-      printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
-      scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
-      system("cls");
-
-      printf("Informe o telefone de contato do cliente: \n");
-      fflush(stdin);
-      gets(cliente.telefone);
-      system("cls");
-
-      printf("Informe o endereco do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.endereco);
-      system("cls");
-
-      printf("Informe o CEP do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.cep);
-      system("cls");
-
-      printf("Informe o bairro do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.bairro);
-      system("cls");
-
-      printf("Informe a cidade do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.cidade);
-      system("cls");
-
-      printf("Informe o estado do cliente (em SIGLA): \n");
-      fflush(stdin);
-      gets(cliente.endereco.estado);
-      system("cls");
-
-      printf("Informe a senha do cliente: \n");
-      fflush(stdin);
-      gets(cliente.senha);
-      system("cls");
-
-      // Adicionar para salvar no arquivo.
-
-      break;
-
-    case 2:
-      printf("Iniciando processo de criacao de conta corrente... \n\n");
-
-      printf("Informe o numero da agencia: \n");
-      scanf("%d", &cliente.agencia);
-      system("cls");
-
-      printf("Informe o numero da conta: \n");
-      fflush(stdin);
-      scanf("%d", &cliente.numDaConta);
-      system("cls");
-
-      printf("Informe o limite da conta: \n");
-      fflush(stdin);
-      scanf("%f", &cliente.limiteDaConta);
-      system("cls");
-
-      printf("Informe o nome do cliente: \n");
-      fflush(stdin);
-      gets(cliente.nome);
-      system("cls");
-
-      printf("Informe o cpf do cliente: \n");
-      fflush(stdin);
-      gets(cliente.cpf);
-      system("cls");
-
-      printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
-      scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
-      system("cls");
-
-      printf("Informe o telefone de contato do cliente: \n");
-      fflush(stdin);
-      gets(cliente.telefone);
-      system("cls");
-
-      printf("Informe o endereço do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.endereco);
-      system("cls");
-
-      printf("Informe o CEP do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.cep);
-      system("cls");
-
-      printf("Informe o bairro do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.bairro);
-      system("cls");
-
-      printf("Informe a cidade do cliente: \n");
-      fflush(stdin);
-      gets(cliente.endereco.cidade);
-      system("cls");
-
-      printf("Informe o estado do cliente (em SIGLA): \n");
-      fflush(stdin);
-      gets(cliente.endereco.estado);
-      system("cls");
-
-      printf("Informe a senha do cliente: \n");
-      fflush(stdin);
-      gets(cliente.senha);
-      system("cls");
-
-      break;
-
-    case 3:
       enviarTitulo();
-      printf("Voltando para o menu do funcionario... \n");
+      printf("Menu funcionario:\n\n");
+      printf("1) Conta Poupanca - CP\n");
+      printf("2) Conta Corrente - CC\n");
+      printf("3) Voltar\n\n");
+      scanf("%d", &option);
       system("cls");
-      enviarMenuFuncionario();
-      break;
 
-    default:
-      enviarTitulo();
-      printf("Voce selecionou uma opcao invalida, tente outra...\n");
-      system("cls");
-    }
-    // Executa o código acima enquanto option não for (1,2 ou 3)
-  } while (option <= 0 || option > 3);
-}
+      switch (option)
+      {
+      case 1:
 
-void limparBuffer()
-{
-  int c;
-  while ((c = getchar()) != '\n' && c != EOF)
-  {
+        enviarTitulo();
+        printf("Informe o nome do cliente: \n");
+        fflush(stdin);
+        gets(cliente.nome);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o numero da agencia: \n");
+        fflush(stdin);
+        scanf("%d", &cliente.agencia);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o numero da conta: \n");
+        fflush(stdin);
+        scanf("%d", &cliente.numDaConta);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o CPF do cliente: \n");
+        fflush(stdin);
+        gets(cliente.cpf);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
+        scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o telefone de contato do cliente: \n");
+        fflush(stdin);
+        gets(cliente.telefone);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o endereco do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.endereco);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o CEP do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.cep);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o bairro do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.bairro);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe a cidade do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.cidade);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe o estado do cliente (em SIGLA): \n");
+        fflush(stdin);
+        gets(cliente.endereco.estado);
+        system("cls");
+
+        enviarTitulo();
+        printf("Informe a senha do cliente: \n");
+        fflush(stdin);
+        gets(cliente.senha);
+        system("cls");
+
+        enviarTitulo();
+        printf("Digite o saldo inicial do cliente: \n");
+        scanf("%f", &cliente.saldo);
+        system("cls");
+
+        inserirCliente(file, cliente);
+        break;
+
+      case 2:
+        printf("Iniciando processo de criacao de conta corrente... \n\n");
+
+        printf("Informe o numero da agencia: \n");
+        scanf("%d", &cliente.agencia);
+        system("cls");
+
+        printf("Informe o numero da conta: \n");
+        fflush(stdin);
+        scanf("%d", &cliente.numDaConta);
+        system("cls");
+
+        printf("Informe o limite da conta: \n");
+        fflush(stdin);
+        scanf("%f", &cliente.limiteDaConta);
+        system("cls");
+
+        printf("Informe o nome do cliente: \n");
+        fflush(stdin);
+        gets(cliente.nome);
+        system("cls");
+
+        printf("Informe o cpf do cliente: \n");
+        fflush(stdin);
+        gets(cliente.cpf);
+        system("cls");
+
+        printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
+        scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
+        system("cls");
+
+        printf("Informe o telefone de contato do cliente: \n");
+        fflush(stdin);
+        gets(cliente.telefone);
+        system("cls");
+
+        printf("Informe o endereço do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.endereco);
+        system("cls");
+
+        printf("Informe o CEP do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.cep);
+        system("cls");
+
+        printf("Informe o bairro do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.bairro);
+        system("cls");
+
+        printf("Informe a cidade do cliente: \n");
+        fflush(stdin);
+        gets(cliente.endereco.cidade);
+        system("cls");
+
+        printf("Informe o estado do cliente (em SIGLA): \n");
+        fflush(stdin);
+        gets(cliente.endereco.estado);
+        system("cls");
+
+        printf("Informe a senha do cliente: \n");
+        fflush(stdin);
+        gets(cliente.senha);
+        system("cls");
+
+        break;
+
+      case 3:
+        enviarTitulo();
+        printf("Voltando para o menu do funcionario... \n");
+        system("cls");
+        enviarMenuFuncionario();
+        break;
+
+      default:
+        enviarTitulo();
+        printf("Voce selecionou uma opcao invalida, tente outra...\n");
+        system("cls");
+      }
+      // Executa o código acima enquanto option não for (1,2 ou 3)
+    } while (option <= 0 || option > 3);
+    fclose(file);
   }
+  fclose(file);
 }
 
-// Função que envia o menu do funcionario.
+// Função que envia o menu de funcionários.
 void enviarMenuFuncionario()
 {
   // Declaração do arquivo
@@ -723,8 +921,6 @@ void enviarMenuFuncionario()
             system("cls");
           }
 
-          // Envia o menu de funcionario novamente para o usuario após 30 seg
-          // Envia o menu de funcionario novamente para o usuario após 30 seg
           enviarMenuFuncionario();
         }
 
@@ -751,7 +947,7 @@ void enviarMenuFuncionario()
             break;
 
           case 2:
-            char password[DEFAULT_SIZE];
+            char password[DEFAULT_PASS_SIZE];
 
             int acesso = 0;
             do
@@ -874,7 +1070,7 @@ void enviarMenuFuncionario()
           {
             printf("A senha excede o limite de 16 caracteres.\n");
             printf("Pressione qualquer tecla para tentar novamente...\n");
-            limparBuffer(); // Limpa o buffer caso a senha seja muito longa.
+            fflush(stdin);
             system("cls");
           }
         } while (strlen(funcionario.senhaFuncionario) == 0 || strlen(funcionario.senhaFuncionario) > 16);
@@ -895,277 +1091,83 @@ void enviarMenuFuncionario()
   }
 }
 
-// Função que verifica a autenticação do cliente.
-void solicitarSenhaCliente()
-{
-  // Variável que receberá a senha digitada pelo usuário
-  char password, numeroConta;
-
-  // Variável que concederá acesso para o usuário
-  int acesso = 0;
-
-  // Inicializa o laço de repetição
-  do
-  {
-    acesso = 0;
-    // Verifica se o usuário recebeu acesso
-    if (validarSenhaCliente(&password, &numeroConta) == 1)
-    {
-      return;
-    }
-
-    // Caso a senha seja validada, o usuário receberá acesso.
-    acesso = 1;
-    enviarMenuCliente();
-
-  } while (acesso == 0);
-}
-
-// Função para solicitar a senha do funcionario.
-void solicitarSenhaFuncionario(int tipoDeMenu)
-{
-  // Definindo a váriavel de senha que o usuário irá digitar
-  char password[DEFAULT_SIZE];
-
-  int acesso = 0;
-  do
-  {
-    // Bloqueando o acesso do funcionário até a autenticação da senha
-    acesso = 0;
-
-    enviarTitulo();
-    printf("Digite a sua senha: \n");
-    scanf("%s", password); // Não precisa do & por se tratar de uma String
-    system("cls");
-
-    // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
-    if (validarSenhaAdmin(password) != 0)
-    {
-      enviarTitulo();
-      printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
-      system("cls");
-    }
-
-    // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
-    if (validarSenhaAdmin(password) == 0)
-    {
-      // Senha autenticada e o acesso será liberado
-      acesso = 1;
-
-      if (tipoDeMenu == 1)
-      {
-        // Requisitando a função para enviar o menu de funcionários
-        enviarMenuFuncionario();
-      }
-      else if (tipoDeMenu == 2)
-      {
-        enviarMenuAberturaConta(); // Envia o menu de abertura de conta
-      }
-    }
-  } while (acesso == 0);
-}
-
-// Função que envia o título em ASCII para o usuário antes de alguma mensagem.
-void enviarTitulo()
-{
-  char title[7][91] = {
-      "::::     ::::     :::     :::    :::     :::     :::     :::::::::  :::::::::: :::::::::  ",
-      "+:+:+: :+:+:+   :+: :+:   :+:    :+:     :+:   :+: :+:   :+:    :+: :+:        :+:    :+: ",
-      "+:+ +:+:+ +:+  +:+   +:+  +:+    +:+     +:+  +:+   +:+  +:+    +:+ +:+        +:+    +:+ ",
-      "+#+  +:+  +#+ +#++:++#++: +#+    +#+     +:+ +#++:++#++: +#+    +:+ +#++:++#   +#++:++#:  ",
-      "+#+       +#+ +#+     +#+ +#+     +#+   +#+  +#+     +#+ +#+    +#+ +#+        +#+    +#+ ",
-      "#+#       #+# #+#     #+# #+#      #+#+#+#   #+#     #+# #+#    #+# #+#        #+#    #+# ",
-      "###       ### ###     ### ########## ###     ###     ### #########  ########## ###    ### "};
-
-  char subtitle[7][91] = {
-      "                     :::::::::      :::     ::::    ::: :::    :::                        ",
-      "                     :+:    :+:   :+: :+:   :+:+:   :+: :+:   :+:                         ",
-      "                     +:+    +:+  +:+   +:+  :+:+:+  +:+ +:+  +:+                          ",
-      "                     +#++:++#+  +#++:++#++: +#+ +:+ +#+ +#++:++                           ",
-      "                     +#+    +#+ +#+     +#+ +#+  +#+#+# +#+  +#+                          ",
-      "                     #+#    #+# #+#     #+# #+#   #+#+# #+#   #+#                         ",
-      "                     #########  ###     ### ###    #### ###    ###                        "};
-
-  printf("------------------------------------------------------------------------------------------\n\n");
-  printf("\n");
-  // Enviar o titulo linha por linha
-  for (int i = 0; i < 7; i++)
-  {
-    printf("%s\n", title[i]);
-  }
-  printf("\n");
-  // Enviar o subtitulo linha por linha
-  for (int i = 0; i < 7; i++)
-  {
-    printf("%s\n", subtitle[i]);
-  }
-  printf("\n");
-  printf("------------------------------------------------------------------------------------------\n\n");
-}
-
-void validarSenhaCliente(FILE *file, Cliente cliente)
-{
-  int acesso;
-  int posicao;
-
-  char password[DEFAULT_PASS_SIZE];
-
-  do
-  {
-    // Bloqueando o acesso do usuário enquanto ele não valida a senha.
-    acesso = 0;
-
-    if ((posicao = consultarCliente(file, cliente)) != -1)
-    {
-      fseek(file, posicao * sizeof(cliente), SEEK_SET);
-      fread(&cliente, sizeof(cliente), 1, file);
-
-      enviarTitulo();
-      printf("Digite a senha: \n");
-      fflush(stdin); // Limpa o buffer do teclado
-      gets(password);
-      system("cls");
-
-      if (strcmp(password, cliente.senha) == 0)
-      {
-        enviarTitulo();
-        printf("Autenticado com sucesso. \n");
-        system("cls");
-
-        enviarMenuCliente();
-      }
-      else
-      {
-        enviarTitulo();
-        printf("A senha digitada esta incorreta.\n");
-        exit(1); // Ao digitar a senha incorreta, o usuário sai do programa.
-      }
-    }
-  } while (acesso == 0);
-}
-
-void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
-{
-  int acesso;
-  int posicao;
-
-  char password[DEFAULT_PASS_SIZE];
-  char passwordAdm[DEFAULT_PASS_SIZE] = "adm";
-
-  do
-  {
-    acesso = 0;
-
-    if ((posicao = consultarFuncionario(file, funcionario)) != -1)
-    {
-      fseek(file, posicao * sizeof(funcionario), SEEK_SET);
-      fread(&funcionario, sizeof(funcionario), 1, file);
-
-      enviarTitulo();
-      printf("Digite a senha: \n");
-      fflush(stdin);
-      gets(password);
-      system("cls");
-
-      // Compara a senha digitada pela senha do funcionario
-      if (strcmp(password, funcionario.senhaFuncionario) == 0) // Se der erro irá retornar 1, 0 é válido.
-      {
-        enviarTitulo();
-        printf("Autenticado(a) com sucesso.\n");
-        system("cls");
-
-        enviarMenuFuncionario();
-      }
-      else if (strcmp(password, passwordAdm) == 0)
-      {
-        enviarTitulo();
-        printf("Autenticado(a) utilizando a senha de administrador.\n");
-        system("cls");
-
-        enviarMenuFuncionario();
-      }
-      else
-      {
-        enviarTitulo();
-        printf("A senha digitada esta incorreta.\n");
-        exit(1);
-      }
-    }
-    else if ((posicao = consultarFuncionario(file, funcionario)) == -1 || (posicao = consultarFuncionario(file, funcionario)) == 1)
-    {
-      enviarTitulo();
-      printf("Este funcionario nao esta cadastrado.\n");
-      exit(1);
-    }
-  } while (acesso == 0); // Enquanto o acesso não for liberado.
-}
-
 // Função para enviar o menu principal.
 void enviarMenuPrincipal()
 {
   FILE *file;
   Funcionario funcionario;
+
+  FILE *fileCliente;
+  Cliente cliente;
+
   int option;
 
   file = fopen("funcionarios.txt", "r+");
+  fileCliente = fopen("clientes.txt", "r+");
 
   if (file == NULL)
   {
-    printf("Arquivo não encontrado, recriando o arquivo...");
+    printf("Arquivo de funcionarios nao foi encontrado, recriando o arquivo...\n");
     file = fopen("funcionarios.txt", "w+");
   }
 
-  if (file != NULL)
+  if (fileCliente == NULL)
   {
-    do
+    printf("Arquivo de clientes nao foi encontrado, recriando o arquivo...\n");
+    fileCliente = fopen("clientes.txt", "w+");
+  }
+
+  do
+  {
+    enviarTitulo();
+    printf("Escolha uma opcao do menu principal: \n\n");
+    printf("1) Funcionario\n");
+    printf("2) Cliente\n");
+    printf("3) Sair\n\n");
+    scanf("%d", &option);
+    system("cls");
+
+    switch (option)
     {
+    case 1:
       enviarTitulo();
-      // printf("Bem-vindo(a) ao Malvader Bank!\n\n");
-      printf("Escolha uma opcao do menu principal: \n\n");
-      printf("1) Funcionario\n");
-      printf("2) Cliente\n");
-      printf("3) Sair\n\n");
-      // Armazena a opção escolhida pelo usuario no endereço de memória de option
-      scanf("%d", &option);
+      printf("Digite o nome do funcionario: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.nomeFuncionario);
+      if (strcmp(funcionario.nomeFuncionario, "admin") == 0)
+      {
+        enviarMenuFuncionario();
+      }
       system("cls");
 
-      switch (option)
-      {
-      case 1:
-        // Chamando a função que solicita a senha para o funcionário ao acessar o menu
-        // solicitarSenhaFuncionario(1); // 1 significa que será aberto o menu de funcionarios
+      validarSenhaFuncionario(file, funcionario); // Requisita a função para validação da senha do funcionário.
+      break;
 
-        enviarTitulo();
-        printf("Digite o nome do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.nomeFuncionario);
-        if (strcmp(funcionario.nomeFuncionario, "admin") == 0)
-        {
-          enviarMenuFuncionario();
-        }
-        system("cls");
+    case 2:
+      enviarTitulo();
+      printf("Digite o nome do cliente: \n");
+      fflush(stdin);      // Limpa o buffer do teclado
+      gets(cliente.nome); // Recebe o nome do cliente em formato "STRING" (Cadeia de caracteres).
+      system("cls");
 
-        validarSenhaFuncionario(file, funcionario); // Requisita a função para validação da senha do funcionário.
-        break;
+      validarSenhaCliente(fileCliente, cliente); // Requisita a função para validação da senha do cliente.
+      strcpy(cliente.nome, clienteLogado);       // Copia o nome do cliente para a variável cliente logado.
+      break;
 
-      case 2:
-        // Enviar a autenticação da conta do cliente
-        solicitarSenhaCliente();
-        system("cls");
-        break;
+    case 3:
+      printf("Saindo do programa...");
+      system("pause");
+      exit(1);
+      break;
 
-      case 3:
-        printf("Saindo do programa...");
-        system("pause");
-        exit(1);
-        break;
+      // Caso o usuario digite algo que não seja aceito ou que não exista
+    default:
+      printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
+    }
 
-        // Caso o usuario digite algo que não seja aceito ou que não exista
-      default:
-        printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
-      }
+    fclose(file);
+    // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
+  } while (option <= 0 || option > 3);
 
-      // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
-    } while (option <= 0 || option > 3);
-  }
+  fclose(file);
 }

@@ -487,6 +487,15 @@ void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
       gets(password);
       system("cls");
 
+      if ((posicao = consultarFuncionario(file, funcionario)) == -1)
+      {
+        enviarTitulo();
+        printf("Este funcionario nao esta cadastrado.\n");
+        sleep(3); // Aguarda 3 segundos para enviar o menu principal.
+        enviarMenuPrincipal();
+        return;
+      }
+
       // Compara a senha digitada pela senha do funcionario
       if (strcmp(password, funcionario.senhaFuncionario) == 0) // Se der erro irá retornar 1, 0 é válido.
       {
@@ -514,12 +523,7 @@ void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
         exit(1);
       }
     }
-    else if ((posicao = consultarFuncionario(file, funcionario)) == -1 || (posicao = consultarFuncionario(file, funcionario)) == 1)
-    {
-      enviarTitulo();
-      printf("Este funcionario nao esta cadastrado.\n");
-      exit(1);
-    }
+
   } while (acesso == 0); // Enquanto o acesso não for liberado.
 }
 
@@ -840,10 +844,17 @@ void enviarMenuAberturaConta()
 // Função que envia o menu de funcionários.
 void enviarMenuFuncionario()
 {
-  // Declaração do arquivo
+  // Declaração do arquivo para funcionarios
   FILE *file;
+
+  // Declaração do arquivo para clientes
+  FILE *fileClientes;
+
   // Variavel que vai receber a opcao desejada pelo usuario
   Funcionario funcionario, funcionario_alterado;
+
+  // Variavel que vai receber a opcao desejada pelo usuario
+  Cliente cliente, cliente_alterado;
 
   // Variavel da opção que será digitada pelo usuário
   int option;
@@ -851,67 +862,89 @@ void enviarMenuFuncionario()
   // Tenta abrir o arquivo no modo de leitura e escrita
   file = fopen("funcionarios.txt", "r+");
 
-  // Caso o arquivo não seja encontrado ou aberto por algum motivo
+  // Tenta abrir o arquivo no modo de leitura e escrita
+  file = fopen("clientes.txt", "r+");
+
+  // Caso o arquivo não seja encontrado ou aberto por algum motivo.
   // O programa tentará criar um arquivo novo.
   if (file == NULL)
   {
-    printf("Arquivo não encontrado, recriando o arquivo...");
+    printf("Arquivo de funcionarios nao encontrado, recriando o arquivo...");
     file = fopen("funcionarios.txt", "w+");
   }
 
-  // Caso o arquivo exista e seja aberto com sucesso
-  if (file != NULL)
+  // Caso o arquivo não seja encontrado ou aberto por algum motivo.
+  // O programa tentará criar um arquivo novo.
+  if (fileClientes == NULL)
   {
-    enviarTitulo();
-    do
+    printf("Arquivo de clientes nao encontrado, recriando o arquivo...");
+    file = fopen("clientes.txt", "w+");
+  }
+
+  enviarTitulo();
+  do
+  {
+    // Envia o menu de funcionários
+    printf("Menu funcionario:\n\n");
+    printf("1) Abertura de Conta\n");
+    printf("2) Encerramento de Conta\n");
+    printf("3) Consultar Dados\n");
+    printf("4) Alterar Dados\n");
+    printf("5) Cadastro de Funcionarios\n");
+    printf("6) Gerar Relatorios (Indisponivel)\n");
+    printf("7) Sair\n\n");
+    scanf("%d", &option);
+    system("cls");
+
+    // Limpa todos os streams de entrada que estiverem abertos.
+    fflush(file);
+
+    // Verificação e ação para cada valor digitado pelo usuário ao escolher a opção do menu
+    switch (option)
     {
-      // Envia o menu de funcionários
-      printf("Menu funcionario:\n\n");
-      printf("1) Abertura de Conta\n");
-      printf("2) Encerramento de Conta\n");
-      printf("3) Consultar Dados\n");
-      printf("4) Alterar Dados\n");
-      printf("5) Cadastro de Funcionarios\n");
-      printf("6) Gerar Relatorios (Indisponivel)\n");
-      printf("7) Sair\n\n");
-      scanf("%d", &option);
+    case 1:
+      enviarMenuAberturaConta();
+      break;
+
+    case 2:
+      enviarTitulo();
+      printf("Digite o nome do funcionario que tera a conta encerrada: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.nomeFuncionario);
+      excluirFuncionario(file, funcionario); // Requisita a função que exclui um funcionário
       system("cls");
+      break;
 
-      // Limpa todos os streams de entrada que estiverem abertos.
-      fflush(file);
-
-      // Verificação e ação para cada valor digitado pelo usuário ao escolher a opção do menu
-      switch (option)
+    case 3:
+      int posicao;
+      do
       {
-      case 1:
-        enviarMenuAberturaConta();
-        break;
-
-      case 2:
         enviarTitulo();
-        printf("Digite o nome do funcionario que tera a conta encerrada: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.nomeFuncionario);
-        excluirFuncionario(file, funcionario); // Requisita a função que exclui um funcionário
-        system("cls");
-        break;
-
-      case 3:
-        int posicao;
-        enviarTitulo();
-        fflush(stdin);
-        printf("Digite o nome do funcionario desejado: \n");
-        gets(funcionario.nomeFuncionario);
+        printf("Consultar dados: \n\n");
+        printf("1) Funcionario\n");
+        printf("2) Cliente\n\n");
+        scanf("%d", &option);
         system("cls");
 
-        if ((posicao = consultarFuncionario(file, funcionario)) != -1)
+        switch (option)
         {
-          fseek(file, posicao * sizeof(funcionario), SEEK_SET);
-          fread(&funcionario, sizeof(funcionario), 1, file);
+        case 1:
+          enviarTitulo();
+          fflush(stdin);
+          printf("Digite o nome do funcionario desejado: \n");
+          gets(funcionario.nomeFuncionario);
+          system("cls");
 
-          int contador;
-          for (int i = 0; i < 30; i++)
+          if ((posicao = consultarFuncionario(file, funcionario)) == -1)
           {
+            enviarMenuFuncionario();
+          }
+
+          if ((posicao = consultarFuncionario(file, funcionario)) != -1)
+          {
+            fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+            fread(&funcionario, sizeof(funcionario), 1, file);
+
             enviarTitulo();
             fflush(stdin);
             printf("Mostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
@@ -926,186 +959,211 @@ void enviarMenuFuncionario()
                    funcionario.endereco.estado);
             printf("Senha: %s\n", funcionario.senhaFuncionario);
 
-            contador = 30 - i;
-            if (contador == 1)
-              printf("\n(!) Voltando ao menu de funcionarios em %d segundo...\n", contador);
-            else if (contador == 0)
-              printf("\n(!) Voltando ao menu de funcionarios...\n");
-            else
-              printf("\n(!) Voltando ao menu de funcionarios em %d segundos...\n", contador);
-
-            sleep(1); // Aguarda 1 segundo e envia a mensagem novamente.
+            printf("\nPressione qualquer tecla para voltar ao menu...\n");
+            getch();
             system("cls");
+            enviarMenuFuncionario();
           }
+          break;
 
-          enviarMenuFuncionario();
-        }
-
-        getch();
-        break;
-
-        // Alterar dados
-      case 4:
-        do
-        {
-          printf("\nAlterar dados: \n\n");
-          printf("1) Alterar Conta\n");
-          printf("2) Alterar Funcionario\n");
-          printf("3) Alterar Cliente\n");
-          printf("4) Voltar\n\n");
-          scanf("%d", &option);
-
-          fflush(stdin); // Limpa o buffer do teclado
-
-          switch (option)
-          {
-          case 1:
-            // solicitarSenhaFuncionario(faltando parametros);
-            break;
-
-          case 2:
-            char password[DEFAULT_PASS_SIZE];
-
-            int acesso = 0;
-            do
-            {
-              acesso = 0;
-
-              printf("Digite a senha de administrador: \n");
-              scanf("%s", password);
-
-              // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
-              if (validarSenhaAdmin(password) != 0)
-                printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
-
-              // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
-              if (validarSenhaAdmin(password) == 0)
-              {
-                // Senha autenticada e o acesso será liberado
-                acesso = 1;
-
-                printf("Digite o nome do funcionario que tera os dados alterados: \n");
-                fflush(stdin);
-                gets(funcionario.nomeFuncionario);
-
-                printf("Digite o novo nome do funcionario: \n");
-                fflush(stdin);
-                gets(funcionario_alterado.nomeFuncionario);
-
-                printf("Digite o novo CPF do funcionario: \n");
-                fflush(stdin);
-                gets(funcionario_alterado.cpf);
-
-                alterarFuncionario(file, funcionario, funcionario_alterado);
-              }
-            } while (acesso == 0);
-            break;
-          }
-        } while (option <= 0 || option > 4);
-        break;
-
-      case 5:
-        enviarTitulo();
-        printf("Digite o nome do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.nomeFuncionario);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o codigo do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        scanf("%d", &funcionario.codigoFuncionario);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o cargo do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.cargo);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o CPF do funcionario no formato (000.000.000-00): \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.cpf);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o dia, mes e ano - 11/22/3333: \n");
-        scanf("%d %d %d", &funcionario.nascimento.dia, &funcionario.nascimento.mes, &funcionario.nascimento.ano);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o telefone para contato: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.telefoneContato);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o endereco do funcionario (Maximo de 45 caracteres): \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.endereco.endereco);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o CEP do funcionario no formato (00000-000): \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.endereco.cep);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o bairro do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.endereco.bairro);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite a cidade do funcionario: \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.endereco.cidade);
-        system("cls");
-
-        enviarTitulo();
-        printf("Digite o estado do funcionario (Coloque em sigla: ex: DF): \n");
-        fflush(stdin); // Limpa o buffer do teclado
-        gets(funcionario.endereco.estado);
-        system("cls");
-
-        // Verificar se a senha atende os requisitos e coletar as informações.
-        do
-        {
+        case 2:
           enviarTitulo();
-          printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
-          fflush(stdin); // Limpa o buffer do teclado
-          gets(funcionario.senhaFuncionario);
+          fflush(stdin);
+          printf("Digite o nome do cliente desejado: \n");
+          gets(cliente.nome);
+          system("cls");
 
-          if (strlen(funcionario.senhaFuncionario) == 0)
+          if ((posicao = consultarCliente(file, cliente)) != -1)
           {
-            printf("A senha nao pode ser vazia.\n");
-            system("cls");
-          }
-          else if (strlen(funcionario.senhaFuncionario) > 16)
-          {
-            printf("A senha excede o limite de 16 caracteres.\n");
-            printf("Pressione qualquer tecla para tentar novamente...\n");
+            fseek(file, posicao * sizeof(cliente), SEEK_SET);
+            fread(&cliente, sizeof(cliente), 1, file);
+
+            enviarTitulo();
             fflush(stdin);
+            printf("Mostrando informacoes do(a) cliente %s:\n\n", cliente.nome);
+            printf("Tipo de conta: %d", cliente.agencia);
+            printf("Saldo: %f", cliente.saldo);
+            printf("Senha: %s", cliente.senha);
+            getch();
             system("cls");
+            enviarMenuFuncionario();
           }
-        } while (strlen(funcionario.senhaFuncionario) == 0 || strlen(funcionario.senhaFuncionario) > 16);
+          break;
 
-        // Requisita a função que insere os dados digitados no arquivo de funcionários
-        inserirFuncionario(file, funcionario);
-        break;
+        default:
+          printf("A opcao especificada esta invalida, tente outra...\n");
+          break;
+        }
+      } while (option <= 0 || option > 3);
 
-      default:
+      getch();
+      break;
+
+      // Alterar dados
+    case 4:
+      do
+      {
+        printf("\nAlterar dados: \n\n");
+        printf("1) Alterar Conta\n");
+        printf("2) Alterar Funcionario\n");
+        printf("3) Alterar Cliente\n");
+        printf("4) Voltar\n\n");
+        scanf("%d", &option);
+
+        fflush(stdin); // Limpa o buffer do teclado
+
+        switch (option)
+        {
+        case 1:
+          // solicitarSenhaFuncionario(faltando parametros);
+          break;
+
+        case 2:
+          char password[DEFAULT_PASS_SIZE];
+
+          int acesso = 0;
+          do
+          {
+            acesso = 0;
+
+            printf("Digite a senha de administrador: \n");
+            scanf("%s", password);
+
+            // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
+            if (validarSenhaAdmin(password) != 0)
+              printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
+
+            // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
+            if (validarSenhaAdmin(password) == 0)
+            {
+              // Senha autenticada e o acesso será liberado
+              acesso = 1;
+
+              printf("Digite o nome do funcionario que tera os dados alterados: \n");
+              fflush(stdin);
+              gets(funcionario.nomeFuncionario);
+
+              printf("Digite o novo nome do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.nomeFuncionario);
+
+              printf("Digite o novo CPF do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.cpf);
+
+              alterarFuncionario(file, funcionario, funcionario_alterado);
+            }
+          } while (acesso == 0);
+          break;
+        }
+      } while (option <= 0 || option > 4);
+
+      break;
+
+    case 5:
+      enviarTitulo();
+      printf("Digite o nome do funcionario: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.nomeFuncionario);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o codigo do funcionario: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      scanf("%d", &funcionario.codigoFuncionario);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o cargo do funcionario: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.cargo);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o CPF do funcionario no formato (000.000.000-00): \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.cpf);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o dia, mes e ano - 11/22/3333: \n");
+      scanf("%d %d %d", &funcionario.nascimento.dia, &funcionario.nascimento.mes, &funcionario.nascimento.ano);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o telefone para contato: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.telefoneContato);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o endereco do funcionario (Maximo de 45 caracteres): \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.endereco.endereco);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o CEP do funcionario no formato (00000-000): \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.endereco.cep);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o bairro do funcionario: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.endereco.bairro);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite a cidade do funcionario: \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.endereco.cidade);
+      system("cls");
+
+      enviarTitulo();
+      printf("Digite o estado do funcionario (Coloque em sigla: ex: DF): \n");
+      fflush(stdin); // Limpa o buffer do teclado
+      gets(funcionario.endereco.estado);
+      system("cls");
+
+      // Verificar se a senha atende os requisitos e coletar as informações.
+      do
+      {
         enviarTitulo();
-        printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
-        system("cls");
-      }
+        printf("Digite a senha do funcionario (Maximo de 16 caracteres): \n");
+        fflush(stdin); // Limpa o buffer do teclado
+        gets(funcionario.senhaFuncionario);
 
-      // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
-    } while (option <= 0 || option > 7);
-    fclose(file);
-  }
+        if (strlen(funcionario.senhaFuncionario) == 0)
+        {
+          printf("A senha nao pode ser vazia.\n");
+          system("cls");
+        }
+        else if (strlen(funcionario.senhaFuncionario) > 16)
+        {
+          printf("A senha excede o limite de 16 caracteres.\n");
+          printf("Pressione qualquer tecla para tentar novamente...\n");
+          fflush(stdin);
+          system("cls");
+        }
+      } while (strlen(funcionario.senhaFuncionario) == 0 || strlen(funcionario.senhaFuncionario) > 16);
+
+      // Requisita a função que insere os dados digitados no arquivo de funcionários
+      inserirFuncionario(file, funcionario);
+      break;
+
+    default:
+      enviarTitulo();
+      printf("\nVoce selecionou uma opcao invalida, tente outra...\n");
+      system("cls");
+      break;
+    }
+
+    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
+
+  } while (option <= 0 || option > 7);
+
+  fclose(file);
 }
 
 // Função para enviar o menu principal.
@@ -1154,6 +1212,7 @@ void enviarMenuPrincipal()
       if (strcmp(funcionario.nomeFuncionario, "admin") == 0)
       {
         enviarMenuFuncionario();
+        return;
       }
       system("cls");
 
@@ -1173,9 +1232,10 @@ void enviarMenuPrincipal()
       break;
 
     case 3:
+      enviarTitulo();
       printf("Saindo do programa...");
-      system("pause");
       exit(1);
+      system("cls");
       break;
 
       // Caso o usuario digite algo que não seja aceito ou que não exista

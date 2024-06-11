@@ -10,7 +10,7 @@
 
 // Variável que receberá o nome do usuário quando ele se logar.
 // Irá armazenar o nome do usuário para que seja consultado depois pelo arquivo.
-char clienteLogado[25];
+char *clienteLogado[25];
 
 struct Data
 {
@@ -59,7 +59,7 @@ struct Funcionario
 
 // Declaração de todas as funções utilizadas no projeto.
 void enviarTitulo();                                                                              // Enviar título ASCII para o usuário antes das mensagens
-void enviarMenuCliente();                                                                         // Envia o menu de clientes
+void enviarMenuCliente(FILE *file, Cliente cliente);                                              // Envia o menu de clientes
 void enviarMenuFuncionario();                                                                     // Envia o menu de funcionarios
 void enviarMenuPrincipal();                                                                       // Envia o menu principal
 int consultarCliente(FILE *file, Cliente cliente);                                                // Consulta os dados de um cliente
@@ -79,16 +79,13 @@ void sacar(FILE *file, Cliente cliente);                                        
 // Função que mostra o saldo do cliente.
 void visualizarSaldo(FILE *file, Cliente cliente)
 {
-  file = fopen("clientes.txt", "r+");
-
-  // Requisita o nome do cliente logado no banco.
-  strcpy(clienteLogado, cliente.nome);
+  // Variável que contem a posição do ponteiro do seek.
   int posicao;
 
   if ((posicao = consultarCliente(file, cliente)) == -1)
   {
     enviarTitulo();
-    printf("O cliente informado nao existe nos arquivos...\n");
+    printf("A sua conta esta com problemas...\n");
     exit(1);
     system("cls");
 
@@ -106,7 +103,7 @@ void visualizarSaldo(FILE *file, Cliente cliente)
     getch();
     system("cls");
 
-    enviarMenuCliente();
+    enviarMenuCliente(file, cliente);
 
     fclose(file);
   }
@@ -116,38 +113,69 @@ void visualizarSaldo(FILE *file, Cliente cliente)
 void depositar(FILE *file, Cliente cliente)
 {
   Cliente cliente_alterado;
-  file = fopen("clientes.txt", "r+");
+  int posicao;
 
-  if (file == NULL)
+  if ((posicao = consultarCliente(file, cliente)) == -1)
   {
-    printf("O arquivo de clientes nao foi encontrado.\n");
+    printf("A sua conta esta com problema, tente novamente...\n");
+    exit(1);
     return;
   }
 
-  float valor;
+  if ((posicao = consultarCliente(file, cliente)) != -1)
+  {
+    float valor;
 
-  enviarTitulo();
-  printf("Digite o valor a ser depositado: \n\nR$");
-  fflush(stdin);
-  scanf("%f", &valor);
+    enviarTitulo();
+    printf("Digite o valor a ser depositado: \n\nR$");
+    scanf("%f", &valor);
+    system("cls");
 
-  // Realizar o cálculo de depósito na conta do cliente.
-  float novoSaldo = cliente.saldo + valor;
-  cliente_alterado.saldo = novoSaldo;
+    cliente.saldo += valor;
+    cliente_alterado.saldo = cliente.saldo;
 
-  // Realiza a alteração do saldo do cliente no arquivo.
-  alterarSaldoCliente(file, cliente, cliente_alterado);
-  system("cls");
+    // Realiza a alteração do saldo do cliente no arquivo.
+    alterarSaldoCliente(file, cliente, cliente_alterado);
 
-  // Enviar a mensagem com o saldo do usuário
-  enviarTitulo();
-  printf("Voce realizou um deposito de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, cliente.saldo);
-  printf("Pressione qualquer tecla para retornar ao menu...\n");
-  getch();
-  system("cls");
+    // Enviar a mensagem com o saldo do usuário
+    enviarTitulo();
+    printf("Conta: %s\n\n", cliente.nome);
+    printf("Voce realizou um deposito de R$%.2f com sucesso. \n", valor);
+    printf("Seu novo saldo: R$%.2f\n\n", cliente.saldo);
+    printf("Pressione qualquer tecla para retornar ao menu...\n");
+    getch();
+    system("cls");
 
-  // Enviar o menu de clientes novamente para o usuário.
-  enviarMenuCliente();
+    // Enviar o menu de clientes novamente para o usuário.
+    enviarMenuCliente(file, cliente);
+  }
+}
+
+// Função que altera o saldo de um cliente no arquivo.
+int alterarSaldoCliente(FILE *file, Cliente cliente, Cliente cliente_alterado)
+{
+  int posicao;
+
+  // Verifica se o arquivo conseguiu ser aberto com sucesso
+  if (file != NULL)
+  {
+    posicao = consultarCliente(file, cliente);
+    if (posicao != -1)
+    {
+      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
+      fread(&cliente, sizeof(cliente), 1, file);
+
+      // Copia os dados contidos no registro antigo e envia para o novo
+      cliente.saldo = cliente_alterado.saldo;
+
+      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
+      fwrite(&cliente, sizeof(cliente_alterado), 1, file);
+
+      // Enviando mensagem de confirmação...
+      return 1;
+    }
+  }
+  return 0;
 }
 
 // Função para realizar saques.
@@ -156,7 +184,7 @@ void sacar(FILE *file, Cliente cliente)
   file = fopen("clientes.txt", "r+");
   float saldo;
 
-  strcpy(clienteLogado, cliente.nome);
+  strcpy(*clienteLogado, cliente.nome);
 
   if (file == NULL)
   {
@@ -190,24 +218,28 @@ void sacar(FILE *file, Cliente cliente)
   system("cls");
 
   // Enviar o menu de clientes novamente para o usuário.
-  enviarMenuCliente();
+  enviarMenuCliente(file, cliente);
 }
 
-// Função que consulta a existência de um cliente num arquivo.
+// Função que realiza a consulta nos arquivos sobre um cliente
 int consultarCliente(FILE *file, Cliente cliente)
 {
   Cliente cliente_lido;
   int posicao;
 
+  // Caso o arquivo tenha sido aberto e lido com sucesso
   if (file != NULL)
   {
+    // Define o ponteiro de busca para o ínicio do código
     fseek(file, 0L, SEEK_SET);
 
+    // Define a posição inicial para 0
     posicao = 0;
 
     while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
     {
-      if (strcmpi(cliente_lido.nome, cliente.nome) == 0 && (cliente_lido.excluido == 0))
+      if (strcmpi(cliente_lido.nome, cliente.nome) == 0 &&
+          (cliente_lido.excluido == 0))
         return posicao;
       posicao++;
     };
@@ -215,7 +247,7 @@ int consultarCliente(FILE *file, Cliente cliente)
   return -1;
 }
 
-// Função que insere o cliente no arquivo.
+// Função que insere os dados do cliente em um arquivo
 int inserirCliente(FILE *file, Cliente cliente)
 {
   Cliente cliente_lido;
@@ -225,9 +257,13 @@ int inserirCliente(FILE *file, Cliente cliente)
   {
     posicao = 0;
 
+    // Procurar se a estrutura do cliente existe no arquivo.
     if (consultarCliente(file, cliente))
     {
+      // Definindo o ponteiro de busca no início do arquivo
       fseek(file, 0L, SEEK_SET);
+
+      // Vai rodar enquanto não chegar ao fim do arquivo
       while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
       {
         if (cliente_lido.excluido == 1)
@@ -236,7 +272,7 @@ int inserirCliente(FILE *file, Cliente cliente)
       };
 
       fseek(file, posicao * sizeof(cliente), SEEK_SET);
-      cliente.excluido == 0;
+      cliente.excluido = 0;
 
       if (fwrite(&cliente, sizeof(cliente), 1, file))
       {
@@ -246,31 +282,6 @@ int inserirCliente(FILE *file, Cliente cliente)
         getch();
         return 1;
       }
-    }
-  }
-  return 0;
-}
-
-// Função que altera o saldo de um cliente no arquivo.
-int alterarSaldoCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo)
-{
-  int posicao;
-
-  if (file != NULL)
-  {
-    posicao = consultarCliente(file, cliente_antigo);
-    if (posicao != -1)
-    {
-      // Adicionar dados que serão alterados.
-
-      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
-      fread(&cliente_antigo, sizeof(cliente_antigo), 1, file);
-
-      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
-      fwrite(&cliente_antigo, sizeof(cliente_novo), 1, file);
-
-      printf("O saldo foi alterado com sucesso.\n");
-      return 1;
     }
   }
   return 0;
@@ -412,6 +423,15 @@ void validarSenhaCliente(FILE *file, Cliente cliente)
     // Bloqueando o acesso do usuário enquanto ele não valida a senha.
     acesso = 0;
 
+    if ((posicao = consultarCliente(file, cliente)) == -1)
+    {
+      enviarTitulo();
+      printf("Este cliente nao foi encontrado no arquivo...\n");
+      exit(1);
+      system("cls");
+      return;
+    }
+
     if ((posicao = consultarCliente(file, cliente)) != -1)
     {
       fseek(file, posicao * sizeof(cliente), SEEK_SET);
@@ -430,7 +450,7 @@ void validarSenhaCliente(FILE *file, Cliente cliente)
         printf("Autenticado com sucesso. \n");
         system("cls");
 
-        enviarMenuCliente();
+        enviarMenuCliente(file, cliente);
       }
       else
       {
@@ -559,15 +579,10 @@ void enviarTitulo()
 }
 
 // Função que envia o menu de clientes após autenticação.
-void enviarMenuCliente()
+void enviarMenuCliente(FILE *file, Cliente cliente)
 {
   // Abre o arquivo de clientes.
-  FILE *file = fopen("clientes.txt", "r");
-  Cliente cliente;
-  // Repassa o nome salvo do cliente na variável para a struct.
-  strcpy(clienteLogado, cliente.nome);
-
-  int posicao;
+  file = fopen("clientes.txt", "r+");
 
   if (file == NULL)
   {
@@ -595,10 +610,12 @@ void enviarMenuCliente()
       switch (opcao)
       {
       case 1:
+        printf("Estamos coletando suas informacoes para continuar, aguarde...\n");
         visualizarSaldo(file, cliente);
         break;
 
       case 2:
+        printf("Estamos coletando suas informacoes para continuar, aguarde...\n");
         depositar(file, cliente);
         break;
 
@@ -618,9 +635,9 @@ void enviarMenuCliente()
       }
     } while (opcao <= 0 || opcao > 6);
 
-    fclose(file);
+    // fclose(file);
   }
-  fclose(file);
+  // fclose(file);
 }
 
 // Função que envia o menu de abertura de conta.
@@ -654,69 +671,69 @@ void enviarMenuAberturaConta()
       {
       case 1:
 
+        // enviarTitulo();
+        // printf("Informe o numero da agencia: \n");
+        // fflush(stdin);
+        // scanf("%d", &cliente.agencia);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o numero da conta: \n");
+        // fflush(stdin);
+        // scanf("%d", &cliente.numDaConta);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o CPF do cliente: \n");
+        // fflush(stdin);
+        // gets(cliente.cpf);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
+        // scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o telefone de contato do cliente: \n");
+        // fflush(stdin);
+        // gets(cliente.telefone);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o endereco do cliente: \n");
+        // fflush(stdin);
+        // gets(cliente.endereco.endereco);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o CEP do cliente: \n");
+        // fflush(stdin);
+        // gets(cliente.endereco.cep);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o bairro do cliente: \n");
+        // fflush(stdin);
+        // gets(cliente.endereco.bairro);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe a cidade do cliente: \n");
+        // fflush(stdin);
+        // gets(cliente.endereco.cidade);
+        // system("cls");
+
+        // enviarTitulo();
+        // printf("Informe o estado do cliente (em SIGLA): \n");
+        // fflush(stdin);
+        // gets(cliente.endereco.estado);
+        // system("cls");
+
         enviarTitulo();
         printf("Informe o nome do cliente: \n");
-        fflush(stdin);
+        fflush(stdin); // Limpa o buffer do teclado
         gets(cliente.nome);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o numero da agencia: \n");
-        fflush(stdin);
-        scanf("%d", &cliente.agencia);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o numero da conta: \n");
-        fflush(stdin);
-        scanf("%d", &cliente.numDaConta);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o CPF do cliente: \n");
-        fflush(stdin);
-        gets(cliente.cpf);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe a data de nascimento do cliente (dia, mes e ano - 11/22/3333): \n");
-        scanf("%d %d %d", &cliente.nascimento.dia, &cliente.nascimento.mes, &cliente.nascimento.ano);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o telefone de contato do cliente: \n");
-        fflush(stdin);
-        gets(cliente.telefone);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o endereco do cliente: \n");
-        fflush(stdin);
-        gets(cliente.endereco.endereco);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o CEP do cliente: \n");
-        fflush(stdin);
-        gets(cliente.endereco.cep);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o bairro do cliente: \n");
-        fflush(stdin);
-        gets(cliente.endereco.bairro);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe a cidade do cliente: \n");
-        fflush(stdin);
-        gets(cliente.endereco.cidade);
-        system("cls");
-
-        enviarTitulo();
-        printf("Informe o estado do cliente (em SIGLA): \n");
-        fflush(stdin);
-        gets(cliente.endereco.estado);
         system("cls");
 
         enviarTitulo();
@@ -1151,7 +1168,8 @@ void enviarMenuPrincipal()
       system("cls");
 
       validarSenhaCliente(fileCliente, cliente); // Requisita a função para validação da senha do cliente.
-      strcpy(cliente.nome, clienteLogado);       // Copia o nome do cliente para a variável cliente logado.
+
+      strcpy(cliente.nome, *clienteLogado); // Copia o nome do cliente para a variável cliente logado.
       break;
 
     case 3:

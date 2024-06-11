@@ -14,3 +14,6 @@ cmake-build-debug/*
 # Pastas geradas pelo Vscode
 .vscode
 .vscode/*
+
+#CMake
+CMakeLists.txt

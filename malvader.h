@@ -81,6 +81,12 @@ void visualizarSaldo(FILE *file, Cliente cliente)
 {
   // Variável que contem a posição do ponteiro do seek.
   int posicao;
+  
+  // Verifica se o arquivo foi aberto corretamente.
+  if (arquivo == NULL) {
+      printf("Não foi possivel visualizar seu saldo.");
+      return 1;
+  }
 
   if ((posicao = consultarCliente(file, cliente)) == -1)
   {
@@ -113,18 +119,24 @@ void visualizarSaldo(FILE *file, Cliente cliente)
 void depositar(FILE *file, Cliente cliente)
 {
   Cliente cliente_alterado;
-  int posicao;
+  iint posicao;
+  float valor;
+  
+  printf("Insira o valor do deposito: ");
+  scanf("%f", &valor);
 
-  if ((posicao = consultarCliente(file, cliente)) == -1)
-  {
-    printf("A sua conta esta com problema, tente novamente...\n");
-    exit(1);
-    return;
-  }
+  // A struct de saldo do cliente recebe o valor do depósito.
+  cliente.saldo = valor;
+  
+  // Escrever o saldo no arquivo
+  fseek(file, 0, SEEK_SET); // Posiciona o ponteiro no início do arquivo
+  fwrite(&cliente, sizeof(Cliente), 1, file); // Escreve a struct Cliente no arquivo
 
-  if ((posicao = consultarCliente(file, cliente)) != -1)
-  {
-    float valor;
+  // Fechar o arquivo
+  fclose(clientes.txt);
+
+  printf("Depósito de %.2f realizado com sucesso.\n", valor);
+}
 
     enviarTitulo();
     printf("Digite o valor a ser depositado: \n\nR$");
@@ -178,84 +190,6 @@ int alterarSaldoCliente(FILE *file, Cliente cliente, Cliente cliente_alterado)
   return 0;
 }
 
-<<<<<<< HEAD
-// Função que mostra o saldo do cliente.
-void visualizarSaldo (FILE *file, Cliente cliente, float *saldo)
-{
-  // Adicionar a leitura do saldo do cliente em um arquivo
-  // e adicionar o conteúdo do saldo na variável saldo.
-  float saldo = cliente.saldo;
-
-  // Abrir o arquivo de clientes
-  file = fopen("clientes.txt", "r");
-    if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
-        return -1; // Retorna um valor negativo para indicar um erro
-    }
-
-  int contador;
-
-  system("cls");
-  for (int i = 0; i <= 10; i++)
-  {
-    enviarTitulo();
-    printf("Saldo atual em sua conta: R$%.2f\n\n", saldo);
-    contador = 10 - i;
-    if (contador == 1)
-      printf("(!) Voltando ao menu de clientes em %d segundo...\n", contador);
-    else if (contador == 0)
-      printf("(!) Voltando ao menu de clientes...\n");
-    else
-      printf("(!) Voltando ao menu de clientes em %d segundos...\n", contador);
-
-    sleep(1);
-    system("cls");
-  }
-
-  enviarMenuCliente();
-}
-
-// Função para realizar depósito.
-void depositar(float *saldo)
-{
-  float valor;
-  char senhaDigitada, numeroConta;
-  validarSenhaCliente(&senhaDigitada, &numeroConta);
-
-  enviarTitulo();
-  printf("Digite o valor a ser depositado: \n\nR$");
-  scanf("%f", &valor);
-
-  // Recebe o valor e adiciona ao saldo do usuário.
-  *saldo += valor;
-
-  int contador;
-  system("cls");
-  // Inicializa um laço para a cada 1 segundo uma mensagem com o tempo atualizada ser enviada.
-  for (int i = 0; i <= 10; i++)
-  {
-    enviarTitulo();
-
-    printf("Voce realizou um deposito de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, *saldo);
-    // Diminui o tempo do contador a cada segundo que passa
-    contador = 10 - i;
-    if (contador == 1)
-      printf("(!) Voltando ao menu em %d segundo...\n", contador);
-    else if (contador == 0)
-      printf("(!) Voltando ao menu de clientes...\n");
-    else
-      printf("(!) Voltando ao menu em %d segundos...\n", contador);
-
-    sleep(1);
-    system("cls");
-  }
-
-  // Enviar o menu de clientes novamente para o usuário.
-  enviarMenuCliente();
-}
-
-=======
->>>>>>> 25633bd7830998587f6ef805292cc21c7d6bbb09
 // Função para realizar saques.
 void sacar(FILE *file, Cliente cliente)
 {

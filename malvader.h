@@ -68,12 +68,12 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
 int validarSenhaAdmin(char *senhaDigitada);                                                       // Valida a senha de administrador digitada pelo usuário
 void validarSenhaCliente(FILE *file, Cliente cliente);                                            // Valida o usuario e senha de um cliente
 void validarSenhaFuncionario(FILE *file, Funcionario funcionario);                                // Valida o usuario e senha de um funcionario
-void visualizarSaldo(FILE *file, Cliente cliente);                                                // Mostrar o saldo de um cliente.
+void saldo(FILE *file, Cliente cliente);                                                          // Mostrar o saldo de um cliente.
 void depositar(FILE *file, Cliente cliente);                                                      // Depositar um valor na conta de um cliente.
 void sacar(FILE *file, Cliente cliente);                                                          // Sacar um valor da conta de um cliente.
 
 // Função que mostra o saldo do cliente.
-void visualizarSaldo(FILE *file, Cliente cliente)
+void saldo(FILE *file, Cliente cliente)
 {
   // Variável que contem a posição do ponteiro do seek.
   int posicao;
@@ -622,7 +622,7 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
       {
       case 1:
         printf("Estamos coletando suas informacoes para continuar, aguarde...\n");
-        visualizarSaldo(file, cliente);
+        saldo(file, cliente);
         break;
 
       case 2:

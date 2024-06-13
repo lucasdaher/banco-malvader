@@ -191,9 +191,10 @@ void depositar(float *saldo)
     return;
   }
 
+  // O saldo atual da conta é somado ao valor depositado.
   saldoAtual += valor;
-  fprintf(file, "%.2f", (double)saldoAtual);
-  fclose(file);
+  fprintf(file, "%.2f", (double)saldoAtual); // Escreve o saldo atual do cliente no arquivo. 
+  fclose(file); 
 
   system("cls");
 
@@ -233,10 +234,21 @@ void sacar(float *saldo)
   validarSenhaCliente(&senhaDigitada, &numeroConta);
 
   enviarTitulo();
-  printf("Digite o valor a ser retirado: \n\nR$");
+  printf("Digite o valor do saque: \n\nR$");
   scanf("%f", &valor);
   system("cls");
 
+  // Abre o arquivo em modo de leitura.
+  FILE *file = fopen("clientes.txt", "r+");
+  if (file == NULL) {
+    printf("\nErro ao ler o saldo armazenado!");
+    return;
+  }
+
+  // Lê o saldo atual do arquivo>
+  fscanf(file, "%f", saldo);
+
+  // Verifica se o saldo é suficiente.
   if (*saldo < valor)
   {
     enviarTitulo();
@@ -246,16 +258,14 @@ void sacar(float *saldo)
     return;
   }
 
-  FILE *file = fopen ("clientes.txt", "w");
-  if (file == NULL) {
-    printf("Houve um erro na realização do saque.");
-    return;
-  }
-
-  fprintf(file, "%.2f", *saldo - valor);
+  // Posiciona o ponteiro no inicio do arquivo.
+  fseek(file, 0, SEEK_SET);
 
   // Recebe o valor e adiciona ao saldo do usuário.
   *saldo -= valor;
+
+  // Escreve o novo saldo no arquivo.
+  fprintf(file, "%.2f", *saldo);
 
   int contador;
   system("cls");

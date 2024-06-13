@@ -124,26 +124,27 @@ int validarSenhaCliente(char *senhaDigitada, char *numeroConta)
 }
 
 // Função que mostra o saldo do cliente.
-void visualizarSaldo (FILE *file, Cliente cliente, float *saldo)
+void visualizarSaldo (FILE *file, float *saldo)
 {
   // Adicionar a leitura do saldo do cliente em um arquivo
   // e adicionar o conteúdo do saldo na variável saldo.
-  float saldo = cliente.saldo;
 
-  // Abrir o arquivo de clientes
-  file = fopen("clientes.txt", "r");
-    if (file == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
-        return -1; // Retorna um valor negativo para indicar um erro
-    }
+  // Chama a função de validar a senha do cliente para acessar a conta.
+  validarSenhaCliente;
 
+  // Lê o valor contido no arquivo e o armazena em saldo.
+  fscanf(file, "%f", saldo);
+  fclose(file);
+
+  // Sistema de conntagem para retornar ao menu principal.
   int contador;
 
   system("cls");
   for (int i = 0; i <= 10; i++)
   {
     enviarTitulo();
-    printf("Saldo atual em sua conta: R$%.2f\n\n", saldo);
+    printf("Saldo disponivel: R$%.2f\n\n", *saldo);
+
     contador = 10 - i;
     if (contador == 1)
       printf("(!) Voltando ao menu de clientes em %d segundo...\n", contador);
@@ -167,11 +168,37 @@ void depositar(float *saldo)
   validarSenhaCliente(&senhaDigitada, &numeroConta);
 
   enviarTitulo();
+
+  // O cliente insere o valor do depósito na variável "valor".
   printf("Digite o valor a ser depositado: \n\nR$");
   scanf("%f", &valor);
 
-  // Recebe o valor e adiciona ao saldo do usuário.
-  *saldo += valor;
+  // Abre o arquivo no modo de leitura para ler o saldo atual.
+  FILE *file = fopen("clientes.txt", "r");
+  if (file == NULL) {
+    printf("Erro ao ler o saldo armazenado!\n");
+    return;
+  }
+  // Lê o saldo atual do arquivo.
+  float saldoAtual;
+  fscanf(file, "%f", &saldoAtual);
+  fclose(file);
+
+  // Abre o arquivo em modo de escrita para gravar o novo saldo
+  file = fopen ("clientes.txt", "w");
+  if (file == NULL) {
+    printf("Erro ao gravar o novo saldo");
+    return;
+  }
+
+  saldoAtual += valor;
+  fprintf(file, "%.2f", (double)saldoAtual);
+  fclose(file);
+
+  system("cls");
+
+  // Atualiza o saldo do cliente.
+  *saldo = saldoAtual;
 
   int contador;
   system("cls");
@@ -219,6 +246,14 @@ void sacar(float *saldo)
     return;
   }
 
+  FILE *file = fopen ("clientes.txt", "w");
+  if (file == NULL) {
+    printf("Houve um erro na realização do saque.");
+    return;
+  }
+
+  fprintf(file, "%.2f", *saldo - valor);
+
   // Recebe o valor e adiciona ao saldo do usuário.
   *saldo -= valor;
 
@@ -243,6 +278,8 @@ void sacar(float *saldo)
     system("cls");
   }
 
+  fclose (file);
+
   // Enviar o menu de clientes novamente para o usuário.
   enviarMenuCliente();
 }
@@ -258,7 +295,7 @@ void enviarMenuCliente()
     file = fopen("clientes.txt", "w+"); // Tentativa de criar o arquivo
   }
 
-  float saldo = 100.0;
+  float saldo = 0.0;
 
   enviarTitulo();
   int opcao;
@@ -277,7 +314,7 @@ void enviarMenuCliente()
     switch (opcao)
     {
     case 1:
-      visualizarSaldo();
+      visualizarSaldo(file, &saldo);
       break;
 
     case 2:

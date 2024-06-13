@@ -371,10 +371,6 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
       fseek(file, posicao * sizeof(Funcionario), SEEK_SET);
       fread(&funcionario_antigo, sizeof(funcionario_antigo), 1, file);
 
-      ///////////////////////////////////////////////////////////////////////
-      // Adicionar todos os dados que serão atualizados nas linhas abaixo: //
-      ///////////////////////////////////////////////////////////////////////
-
       // Copia os dados contidos no registro antigo e envia para o novo
       strcpy(funcionario_antigo.nomeFuncionario, funcionario_novo.nomeFuncionario);
       strcpy(funcionario_antigo.cpf, funcionario_novo.cpf);
@@ -382,7 +378,9 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
       fseek(file, posicao * sizeof(Funcionario), SEEK_SET);
       fwrite(&funcionario_antigo, sizeof(funcionario_novo), 1, file);
 
+      enviarTitulo();
       printf("Os dados deste funcionario foram alterados com sucesso.\n");
+      system("cls");
       return 1;
     }
   }
@@ -899,8 +897,7 @@ void enviarMenuFuncionario()
     printf("3) Consultar Dados\n");       // Consultar dados de clientes está com erro
     printf("4) Alterar Dados\n");         // Falta terminar
     printf("5) Cadastro de Funcionarios\n");
-    printf("6) Gerar Relatorios (Indisponivel)\n");
-    printf("7) Sair\n\n");
+    printf("6) Sair\n\n");
     scanf("%d", &option);
     system("cls");
 
@@ -1047,12 +1044,14 @@ void enviarMenuFuncionario()
       int acesso;
       do
       {
-        printf("\nAlterar dados: \n\n");
+        enviarTitulo();
+        printf("Alterar dados: \n\n");
         printf("1) Alterar Conta\n");
         printf("2) Alterar Funcionario\n");
         printf("3) Alterar Cliente\n");
         printf("4) Voltar\n\n");
         scanf("%d", &option);
+        system("cls");
 
         fflush(stdin); // Limpa o buffer do teclado
 
@@ -1135,6 +1134,12 @@ void enviarMenuFuncionario()
               system("cls");
 
               enviarTitulo();
+              printf("Digite a nova senha do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.senhaFuncionario);
+              system("cls");
+
+              enviarTitulo();
               printf("Digite o novo endereco do funcionario: \n");
               fflush(stdin);
               gets(funcionario_alterado.endereco.endereco);
@@ -1162,12 +1167,6 @@ void enviarMenuFuncionario()
               printf("Digite o novo estado do funcionario (Ex.: DF): \n");
               fflush(stdin);
               gets(funcionario_alterado.endereco.estado);
-              system("cls");
-
-              enviarTitulo();
-              printf("Digite a nova senha do funcionario: \n");
-              fflush(stdin);
-              gets(funcionario_alterado.senhaFuncionario);
               system("cls");
 
               // Requisita a função que altera os dados de um funcionário.
@@ -1375,6 +1374,10 @@ void enviarMenuFuncionario()
 
       // Requisita a função que insere os dados digitados no arquivo de funcionários
       inserirFuncionario(file, funcionario);
+      break;
+
+    case 6:
+      enviarMenuPrincipal();
       break;
 
     default:

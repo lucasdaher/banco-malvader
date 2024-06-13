@@ -41,6 +41,7 @@ struct Cliente
   struct Endereco endereco;
   char senha[16];
   float saldo;
+  char tipoConta[2];
   char excluido;
 };
 
@@ -82,16 +83,6 @@ void visualizarSaldo(FILE *file, Cliente cliente)
   // Variável que contem a posição do ponteiro do seek.
   int posicao;
 
-  if ((posicao = consultarCliente(file, cliente)) == -1)
-  {
-    enviarTitulo();
-    printf("A sua conta esta com problemas...\n");
-    exit(1);
-    system("cls");
-
-    return;
-  }
-
   if ((posicao = consultarCliente(file, cliente)) != -1)
   {
     fseek(file, posicao * sizeof(cliente), SEEK_SET);
@@ -104,8 +95,6 @@ void visualizarSaldo(FILE *file, Cliente cliente)
     system("cls");
 
     enviarMenuCliente(file, cliente);
-
-    fclose(file);
   }
 }
 
@@ -114,13 +103,6 @@ void depositar(FILE *file, Cliente cliente)
 {
   Cliente cliente_alterado;
   int posicao;
-
-  if ((posicao = consultarCliente(file, cliente)) == -1)
-  {
-    printf("A sua conta esta com problema, tente novamente...\n");
-    exit(1);
-    return;
-  }
 
   if ((posicao = consultarCliente(file, cliente)) != -1)
   {
@@ -280,6 +262,32 @@ int inserirCliente(FILE *file, Cliente cliente)
         printf("O cliente foi cadastrado com sucesso.\n");
         printf("Pressione qualquer tecla para concluir o cadastro...\n");
         getch();
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+// Função que exclui um funcionário dos registros.
+int excluirCliente(FILE *file, Cliente cliente)
+{
+  int posicao;
+  // Executa somente se o arquivo existir.
+  if (file != NULL)
+  {
+    posicao = consultarCliente(file, cliente);
+    // Verifica a existência do usuário dentro dos arquivos.
+    if (posicao != -1)
+    {
+      fseek(file, posicao * sizeof(cliente), SEEK_SET);
+      cliente.excluido = 1;
+      if (fwrite(&cliente, sizeof(cliente), 1, file))
+      {
+        enviarTitulo();
+        printf("Voce excluiu o cliente %s dos registros com sucesso.\n", cliente.nome);
+        printf("Pressione qualquer tecla para finalizar...\n");
+        system("cls");
         return 1;
       }
     }
@@ -588,12 +596,14 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
   // Abre o arquivo de clientes.
   file = fopen("clientes.txt", "r+");
 
+  // Verificar se o arquivo existe e foi lido.
   if (file == NULL)
   {
     printf("O registro de clientes não foi encontrado no sistema, gerando um novo.\n");
     file = fopen("clientes.txt", "w+"); // Tentativa de criar o arquivo
   }
 
+  // Verifica se o arquivo foi aberto e executa o contexto.
   if (file != NULL)
   {
     enviarTitulo();
@@ -630,7 +640,6 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
       case 6:
         enviarTitulo();
         printf("Voce escolheu sair do programa, desconectando da sua conta... \n");
-        system("pause");
         exit(1);
 
       default:
@@ -638,10 +647,7 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
         break;
       }
     } while (opcao <= 0 || opcao > 6);
-
-    // fclose(file);
   }
-  // fclose(file);
 }
 
 // Função que envia o menu de abertura de conta.
@@ -665,8 +671,8 @@ void enviarMenuAberturaConta()
     {
       enviarTitulo();
       printf("Menu funcionario:\n\n");
-      printf("1) Conta Poupanca - CP\n");
-      printf("2) Conta Corrente - CC\n");
+      printf("1) Conta Poupanca\n");
+      printf("2) Conta Corrente\n");
       printf("3) Voltar\n\n");
       scanf("%d", &option);
       system("cls");
@@ -750,6 +756,8 @@ void enviarMenuAberturaConta()
         printf("Digite o saldo inicial do cliente: \n");
         scanf("%f", &cliente.saldo);
         system("cls");
+
+        strcpy("CP", cliente.tipoConta);
 
         inserirCliente(file, cliente);
         break;
@@ -863,7 +871,7 @@ void enviarMenuFuncionario()
   file = fopen("funcionarios.txt", "r+");
 
   // Tenta abrir o arquivo no modo de leitura e escrita
-  file = fopen("clientes.txt", "r+");
+  fileClientes = fopen("clientes.txt", "r+");
 
   // Caso o arquivo não seja encontrado ou aberto por algum motivo.
   // O programa tentará criar um arquivo novo.
@@ -878,7 +886,7 @@ void enviarMenuFuncionario()
   if (fileClientes == NULL)
   {
     printf("Arquivo de clientes nao encontrado, recriando o arquivo...");
-    file = fopen("clientes.txt", "w+");
+    fileClientes = fopen("clientes.txt", "w+");
   }
 
   enviarTitulo();
@@ -907,12 +915,33 @@ void enviarMenuFuncionario()
       break;
 
     case 2:
-      enviarTitulo();
-      printf("Digite o nome do funcionario que tera a conta encerrada: \n");
-      fflush(stdin); // Limpa o buffer do teclado
-      gets(funcionario.nomeFuncionario);
-      excluirFuncionario(file, funcionario); // Requisita a função que exclui um funcionário
-      system("cls");
+      do
+      {
+        switch (option)
+        {
+        case 1:
+          enviarTitulo();
+          printf("Digite o nome do funcionario que tera a conta encerrada: \n");
+          fflush(stdin); // Limpa o buffer do teclado
+          gets(funcionario.nomeFuncionario);
+          excluirFuncionario(file, funcionario); // Requisita a função que exclui um funcionário
+          system("cls");
+          break;
+
+        case 2:
+          enviarTitulo();
+          printf("Digite o nome do cliente que tera a conta encerrada: \n");
+          fflush(stdin); // Limpa o buffer do teclado
+          gets(cliente.nome);
+          system("cls");
+
+          excluirCliente(file, cliente); // Requisita a função que exclui um funcionário
+          break;
+
+        default:
+          break;
+        }
+      } while (option <= 0 || option > 3);
       break;
 
     case 3:
@@ -937,6 +966,10 @@ void enviarMenuFuncionario()
 
           if ((posicao = consultarFuncionario(file, funcionario)) == -1)
           {
+            enviarTitulo();
+            printf("O funcionario nao foi encontrado, voltando ao menu...\n");
+            sleep(3); // Espera 3 segundos para executar a próxima linha.
+            system("cls");
             enviarMenuFuncionario();
           }
 
@@ -968,24 +1001,35 @@ void enviarMenuFuncionario()
 
         case 2:
           enviarTitulo();
-          fflush(stdin);
           printf("Digite o nome do cliente desejado: \n");
+          fflush(stdin); // Limpa o buffer do teclado
           gets(cliente.nome);
           system("cls");
 
+          // Verifica se o cliente existe ou não.
+          if ((posicao = consultarCliente(file, cliente)) == -1)
+          {
+            enviarTitulo();
+            printf("O cliente nao foi encontrado, voltando ao menu...\n");
+            sleep(3); // Espera 3 segundos para executar a próxima linha.
+            system("cls");
+            enviarMenuFuncionario();
+            return;
+          }
+
+          // Caso o cliente exista ele irá executar o código.
           if ((posicao = consultarCliente(file, cliente)) != -1)
           {
             fseek(file, posicao * sizeof(cliente), SEEK_SET);
             fread(&cliente, sizeof(cliente), 1, file);
 
             enviarTitulo();
-            fflush(stdin);
             printf("Mostrando informacoes do(a) cliente %s:\n\n", cliente.nome);
             printf("Tipo de conta: %d", cliente.agencia);
             printf("Saldo: %f", cliente.saldo);
             printf("Senha: %s", cliente.senha);
-            getch();
             system("cls");
+            getch();
             enviarMenuFuncionario();
           }
           break;
@@ -1031,7 +1075,13 @@ void enviarMenuFuncionario()
 
             // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
             if (validarSenhaAdmin(password) != 0)
-              printf("\nA senha digitada esta incorreta, tente novamente. \n\n");
+            {
+              enviarTitulo();
+              printf("\nA senha digitada esta incorreta, voltando ao menu de funcionarios. \n\n");
+              system("cls");
+              sleep(5);
+              enviarMenuFuncionario();
+            }
 
             // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
             if (validarSenhaAdmin(password) == 0)

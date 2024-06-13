@@ -5,12 +5,7 @@
 #include <locale.h>
 #include <unistd.h>
 
-#define MAX_PASSWORD_SIZE 6
-#define DEFAULT_PASS_SIZE 16 // Tamanho máximo de uma senha
-
-// Variável que receberá o nome do usuário quando ele se logar.
-// Irá armazenar o nome do usuário para que seja consultado depois pelo arquivo.
-char *clienteLogado[25];
+#define DEFAULT_PASS_SIZE 16
 
 struct Data
 {
@@ -41,7 +36,7 @@ struct Cliente
   struct Endereco endereco;
   char senha[16];
   float saldo;
-  char tipoConta[2];
+  char tipoConta[4];
   char excluido;
 };
 
@@ -113,8 +108,8 @@ void depositar(FILE *file, Cliente cliente)
     scanf("%f", &valor);
     system("cls");
 
-    cliente.saldo += valor;
-    cliente_alterado.saldo = cliente.saldo;
+    // Adiciona o valor depositado ao valor da conta do
+    cliente_alterado.saldo = cliente.saldo + valor;
 
     // Realiza a alteração do saldo do cliente no arquivo.
     alterarSaldoCliente(file, cliente, cliente_alterado);
@@ -165,8 +160,6 @@ void sacar(FILE *file, Cliente cliente)
 {
   file = fopen("clientes.txt", "r+");
   float saldo;
-
-  strcpy(*clienteLogado, cliente.nome);
 
   if (file == NULL)
   {
@@ -332,6 +325,7 @@ int inserirFuncionario(FILE *file, Funcionario funcionario)
       }
     }
   }
+  // Retorno padrão
   return 0;
 }
 
@@ -757,7 +751,12 @@ void enviarMenuAberturaConta()
         scanf("%f", &cliente.saldo);
         system("cls");
 
-        strcpy("CP", cliente.tipoConta);
+        enviarTitulo();
+        printf("Confirme que esta criando uma conta poupanca \n");
+        printf("Digite 'CP' no campo abaixo para continuar: \n");
+        fflush(stdin);
+        gets(cliente.tipoConta);
+        system("cls");
 
         inserirCliente(file, cliente);
         break;
@@ -1277,8 +1276,6 @@ void enviarMenuPrincipal()
       system("cls");
 
       validarSenhaCliente(fileCliente, cliente); // Requisita a função para validação da senha do cliente.
-
-      strcpy(cliente.nome, *clienteLogado); // Copia o nome do cliente para a variável cliente logado.
       break;
 
     case 3:

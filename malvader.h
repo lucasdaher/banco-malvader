@@ -854,37 +854,35 @@ void enviarMenuAberturaConta()
 // Função que envia o menu de funcionários.
 void enviarMenuFuncionario()
 {
-  // Declaração do arquivo para funcionarios
+  // Declaração do arquivo para funcionarios.
   FILE *file;
 
-  // Declaração do arquivo para clientes
+  // Declaração do arquivo para clientes.
   FILE *fileClientes;
 
-  // Variavel que vai receber a opcao desejada pelo usuario
+  // Variável que vai receber a opção desejada pelo usuário.
   Funcionario funcionario, funcionario_alterado;
 
-  // Variavel que vai receber a opcao desejada pelo usuario
+  // Variável que vai receber a opção desejada pelo usuário.
   Cliente cliente, cliente_alterado;
 
-  // Variavel da opção que será digitada pelo usuário
+  // Variável da opção que será digitada pelo usuário.
   int option;
 
-  // Tenta abrir o arquivo no modo de leitura e escrita
+  // Tenta abrir o arquivo no modo de leitura e escrita.
   file = fopen("funcionarios.txt", "r+");
 
-  // Tenta abrir o arquivo no modo de leitura e escrita
+  // Tenta abrir o arquivo no modo de leitura e escrita.
   fileClientes = fopen("clientes.txt", "r+");
 
-  // Caso o arquivo não seja encontrado ou aberto por algum motivo.
-  // O programa tentará criar um arquivo novo.
+  // Caso o arquivo não exista, o programa tentará criar um novo...
   if (file == NULL)
   {
     printf("Arquivo de funcionarios nao encontrado, recriando o arquivo...");
     file = fopen("funcionarios.txt", "w+");
   }
 
-  // Caso o arquivo não seja encontrado ou aberto por algum motivo.
-  // O programa tentará criar um arquivo novo.
+  // Caso o arquivo não exista, o programa tentará criar um novo...
   if (fileClientes == NULL)
   {
     printf("Arquivo de clientes nao encontrado, recriando o arquivo...");
@@ -892,24 +890,23 @@ void enviarMenuFuncionario()
   }
 
   enviarTitulo();
+  // Entra no laço de repetição enquanto o usuário não digitar uma opção.
   do
   {
-    // Envia o menu de funcionários
     printf("Menu funcionario:\n\n");
-    printf("1) Abertura de Conta\n");
-    printf("2) Encerramento de Conta\n");
-    printf("3) Consultar Dados\n");
-    printf("4) Alterar Dados\n");
+    printf("1) Abertura de Conta\n");     // Falta terminar
+    printf("2) Encerramento de Conta\n"); // Falta corrigir e finalizar
+    printf("3) Consultar Dados\n");       // Consultar dados de clientes está com erro
+    printf("4) Alterar Dados\n");         // Falta terminar
     printf("5) Cadastro de Funcionarios\n");
     printf("6) Gerar Relatorios (Indisponivel)\n");
     printf("7) Sair\n\n");
     scanf("%d", &option);
     system("cls");
 
-    // Limpa todos os streams de entrada que estiverem abertos.
+    // Limpa o buffer do teclado.
     fflush(file);
 
-    // Verificação e ação para cada valor digitado pelo usuário ao escolher a opção do menu
     switch (option)
     {
     case 1:
@@ -1047,6 +1044,7 @@ void enviarMenuFuncionario()
 
       // Alterar dados
     case 4:
+      int acesso;
       do
       {
         printf("\nAlterar dados: \n\n");
@@ -1061,19 +1059,23 @@ void enviarMenuFuncionario()
         switch (option)
         {
         case 1:
-          // solicitarSenhaFuncionario(faltando parametros);
+          // Criar funcionalidade que altera o tipo de conta de um cliente.
+          // Conta Poupança = CP | Conta Corrente = CC
           break;
 
         case 2:
           char password[DEFAULT_PASS_SIZE];
 
-          int acesso = 0;
           do
           {
+            // Acesso bloqueado enquanto o usuário não se autenticar.
             acesso = 0;
 
+            enviarTitulo();
             printf("Digite a senha de administrador: \n");
-            scanf("%s", password);
+            fflush(stdin);
+            gets(password);
+            system("cls");
 
             // Faz a verificação se a senha digitada é válida como (Admin || Funcionário)
             if (validarSenhaAdmin(password) != 0)
@@ -1085,28 +1087,199 @@ void enviarMenuFuncionario()
               enviarMenuFuncionario();
             }
 
-            // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários
+            // Se a senha digitada for a senha correta, o usuario recebe o menu de funcionários.
             if (validarSenhaAdmin(password) == 0)
             {
-              // Senha autenticada e o acesso será liberado
+              // Após o usuário for autenticado, o acesso será liberado.
               acesso = 1;
 
+              enviarTitulo();
               printf("Digite o nome do funcionario que tera os dados alterados: \n");
               fflush(stdin);
               gets(funcionario.nomeFuncionario);
+              system("cls");
 
+              // Dados do funcionário que serão alterados devem estar abaixo dessa linha.
+              enviarTitulo();
               printf("Digite o novo nome do funcionario: \n");
               fflush(stdin);
               gets(funcionario_alterado.nomeFuncionario);
+              system("cls");
 
+              enviarTitulo();
               printf("Digite o novo CPF do funcionario: \n");
               fflush(stdin);
               gets(funcionario_alterado.cpf);
+              system("cls");
 
+              enviarTitulo();
+              printf("Digite o novo codigo do funcionario: \n");
+              scanf("%d", &funcionario_alterado.codigoFuncionario);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo cargo do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.cargo);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o dia, mes e ano novo do funcionario - 11 22 3333: \n");
+              scanf("%d %d %d", &funcionario_alterado.nascimento.dia, &funcionario_alterado.nascimento.mes, &funcionario_alterado.nascimento.ano);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo numero de telefone do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.telefoneContato);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo endereco do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.endereco.endereco);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo CEP do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.endereco.cep);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo bairro do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.endereco.bairro);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo cidade do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.endereco.cidade);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite o novo estado do funcionario (Ex.: DF): \n");
+              fflush(stdin);
+              gets(funcionario_alterado.endereco.estado);
+              system("cls");
+
+              enviarTitulo();
+              printf("Digite a nova senha do funcionario: \n");
+              fflush(stdin);
+              gets(funcionario_alterado.senhaFuncionario);
+              system("cls");
+
+              // Requisita a função que altera os dados de um funcionário.
               alterarFuncionario(file, funcionario, funcionario_alterado);
             }
           } while (acesso == 0);
           break;
+
+        case 3:
+          do
+          {
+            acesso = 0;
+
+            enviarTitulo();
+            printf("Digite o nome do cliente que tera os dados alterados: \n");
+            fflush(stdin);
+            gets(cliente.nome);
+            system("cls");
+
+            // Dados do cliente que serão alterados devem estar abaixo dessa linha.
+            enviarTitulo();
+            printf("Digite o novo nome do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.nome);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo numero da agencia: \n");
+            scanf("%d", &cliente_alterado.agencia);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo numero da conta: \n");
+            scanf("%d", &cliente_alterado.numDaConta);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo numero da agencia: \n");
+            scanf("%f", &cliente_alterado.limiteDaConta);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo numero de CPF: \n");
+            fflush(stdin);
+            gets(cliente_alterado.cpf);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o dia, mes e ano da data de nascimento nova do cliente - 11 22 3333: \n");
+            scanf("%d %d %d", &cliente_alterado.nascimento.dia, &cliente_alterado.nascimento.mes, &cliente_alterado.nascimento.ano);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o dia, mes e ano da data de vencimento nova do cliente - 11 22 3333: \n");
+            scanf("%d %d %d", &cliente_alterado.vencimento.dia, &cliente_alterado.vencimento.mes, &cliente_alterado.vencimento.ano);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo numero de telefone do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.telefone);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo endereco do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.endereco.endereco);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo CEP do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.endereco.cep);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo bairro do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.endereco.bairro);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo cidade do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.endereco.cidade);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo estado do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.endereco.estado);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite a nova senha do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.senha);
+            system("cls");
+
+            enviarTitulo();
+            printf("Digite o novo tipo de conta do cliente: \n");
+            fflush(stdin);
+            gets(cliente_alterado.tipoConta);
+            system("cls");
+
+          } while (acesso == 0);
+          break;
+
+        default:
+          enviarTitulo();
+          printf("A opcao informada esta invalida, tente outra.\n");
+          system("cls");
         }
       } while (option <= 0 || option > 4);
 
@@ -1138,7 +1311,7 @@ void enviarMenuFuncionario()
       system("cls");
 
       enviarTitulo();
-      printf("Digite o dia, mes e ano - 11/22/3333: \n");
+      printf("Digite o dia, mes e ano - 11 22 3333: \n");
       scanf("%d %d %d", &funcionario.nascimento.dia, &funcionario.nascimento.mes, &funcionario.nascimento.ano);
       system("cls");
 
@@ -1195,7 +1368,7 @@ void enviarMenuFuncionario()
         {
           printf("A senha excede o limite de 16 caracteres.\n");
           printf("Pressione qualquer tecla para tentar novamente...\n");
-          fflush(stdin);
+          fflush(stdin); // Limpar o buffer do teclado.
           system("cls");
         }
       } while (strlen(funcionario.senhaFuncionario) == 0 || strlen(funcionario.senhaFuncionario) > 16);
@@ -1210,8 +1383,6 @@ void enviarMenuFuncionario()
       system("cls");
       break;
     }
-
-    // Enquanto a opção não for (1,2,3,4,5,6 ou 7) executa o código acima
 
   } while (option <= 0 || option > 7);
 

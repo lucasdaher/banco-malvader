@@ -307,8 +307,11 @@ int inserirFuncionario(FILE *file, Funcionario funcionario)
       // Vai rodar enquanto não chegar ao fim do arquivo
       while (fread(&funcionario_lido, sizeof(funcionario_lido), 1, file))
       {
+        // Verifica se o funcionário já foi excluido.
+        // Caso tenha sido, ele para a busca e retorna erro.
         if (funcionario_lido.excluido == 1)
           break;
+        // Adiciona uma posição sempre que o laço se repete.
         posicao++;
       };
 

@@ -62,20 +62,29 @@ void formatarTipoConta(Cliente cliente);                                        
 int consultarCliente(FILE *file, Cliente cliente);                                                // Consulta os dados de um cliente
 int inserirCliente(FILE *file, Cliente cliente);                                                  // Insere dados de um funcionário no arquivo
 int alterarCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo);                     // Alterar os dados de um cliente do arquivo
-int alterarSaldoCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo);                // Alterar o saldo de um cliente no arquivo.
 int consultarFuncionario(FILE *file, Funcionario funcionario);                                    // Consulta os dados de um funcionário
 int inserirFuncionario(FILE *file, Funcionario funcionario);                                      // Insere dados de um funcionário no arquivo
 int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario funcionario_novo); // Alterar os dados de um funcionário do arquivo
 int validarSenhaAdmin(char *senhaDigitada);                                                       // Valida a senha de administrador digitada pelo usuário
 void validarSenhaCliente(FILE *file, Cliente cliente);                                            // Valida o usuario e senha de um cliente
 void validarSenhaFuncionario(FILE *file, Funcionario funcionario);                                // Valida o usuario e senha de um funcionario
-void saldo(FILE *file, Cliente cliente);                                                          // Mostrar o saldo de um cliente.
-void depositar(FILE *file, Cliente cliente);                                                      // Depositar um valor na conta de um cliente.
-void sacar(FILE *file, Cliente cliente);                                                          // Sacar um valor da conta de um cliente.
+void saldo(Cliente cliente);                                                                      // Mostrar o saldo de um cliente.
+void depositar(Cliente cliente);                                                                  // Depositar um valor na conta de um cliente.
+void sacar(Cliente cliente);                                                                      // Sacar um valor da conta de um cliente.
 
 // Função que mostra o saldo do cliente.
-void saldo(FILE *file, Cliente cliente)
+void saldo(Cliente cliente)
 {
+  // Tenta abrir o arquivo de clientes.
+  FILE *file = fopen("clientes.txt", "r+");
+
+  // Verifica se o arquivo não existir e tenta gerar um novo.
+  if (file == NULL)
+  {
+    printf("O arquivo de clientes nao foi encontrado. Tentando gerar um novo...\n");
+    file = fopen("clientes.txt", "w+");
+  }
+
   // Variável que contem a posição do ponteiro do seek.
   int posicao;
 
@@ -100,130 +109,144 @@ void saldo(FILE *file, Cliente cliente)
 }
 
 // Função para depositar um valor na conta do cliente.
-void depositar(FILE *file, Cliente cliente)
+void depositar(Cliente cliente)
 {
-  // Essa variável receberá as modificações que serão feitas ao depositar.
-  Cliente cliente_alterado;
+  // Tenta abrir o arquivo de clientes.
+  FILE *file = fopen("clientes.txt", "r+");
 
-  // Posição em que uma variável da struct está posicionada.
-  int posicao;
-
-  // Verifica a existência do cliente dentro dos arquivos.
-  if ((posicao = consultarCliente(file, cliente)) != -1)
-  {
-    float valor;
-
-    // Solicita que o usuário informe o valor desejado para depósito.
-    enviarTitulo();
-    printf("Digite o valor a ser depositado: \n\nR$");
-    scanf("%f", &valor);
-    system("cls");
-
-    // Adiciona o valor depositado ao valor da conta do
-    cliente_alterado.saldo = cliente.saldo + valor;
-
-    // Realiza a alteração do saldo do cliente no arquivo.
-    alterarSaldoCliente(file, cliente, cliente_alterado);
-
-    // Envia a resposta do depósito para o usuário.
-    enviarTitulo();
-    printf("Conta: %s\n\n", cliente.nome);
-    printf("Voce realizou um deposito de R$%.2f com sucesso. \n", valor);
-    printf("Seu novo saldo: R$%.2f\n\n", cliente.saldo);
-    printf("Pressione qualquer tecla para retornar ao menu...\n");
-    getch();
-    system("cls");
-
-    // Ao pressionar qualquer tecla o usuário voltará para o menu de clientes.
-    enviarMenuCliente(file, cliente);
-  }
-}
-
-// Função que altera o saldo de um cliente no arquivo.
-int alterarSaldoCliente(FILE *file, Cliente cliente, Cliente cliente_alterado)
-{
-  // Variável que receberá o posicionamento da variável do registro no arquivo.
-  int posicao;
-
-  // Verifica se o arquivo foi aberto e lido com sucesso.
-  if (file != NULL)
-  {
-    // Consulta se o cliente existe dentro dos arquivos.
-    posicao = consultarCliente(file, cliente);
-    if (posicao != -1)
-    {
-      // Movimenta o ponteiro de busca dentro do arquivo de clientes.
-      // O ponteiro irá se movimentar pelo tamanho em bytes da struct Cliente.
-      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
-
-      // Realiza a leitura de todos os dados que podem estar contidos na struct.
-      fread(&cliente, sizeof(cliente), 1, file);
-
-      // Copia os dados contidos no registro antigo e envia para o novo
-      cliente.saldo = cliente_alterado.saldo;
-
-      // Movimenta o ponteiro até a localização dos dados que foram solicitados.
-      fseek(file, posicao * sizeof(Cliente), SEEK_SET);
-
-      // Reescreve os dados atualizados em cima dos dados que já existiam.
-      fwrite(&cliente, sizeof(cliente_alterado), 1, file);
-
-      // Retorna 0 em caso de sucesso.
-      return 0;
-    }
-  }
-  // Retorna -1 em caso de erros.
-  return -1;
-}
-
-// Função para realizar saques.
-void sacar(FILE *file, Cliente cliente)
-{
-  // Realiza a reabertura do arquivo de clientes no modo de leitura/escrita.
-  file = fopen("clientes.txt", "r+");
-  float saldo;
-
-  // Caso o arquivo não exista, o programa tentará gerar um novo.
+  // Verifica se o arquivo não existir e tenta gerar um novo.
   if (file == NULL)
   {
-    printf("O arquivo nao foi encontrado, tentando gerar um novo.\n");
-    // Gera um novo arquivo utilizando o modo de leitura/escrita e substituição.
+    printf("O arquivo de clientes nao foi encontrado. Tentando gerar um novo...\n");
     file = fopen("clientes.txt", "w+");
   }
 
   float valor;
-  // Solicita o usuário a digitação de um valor para ser sacado.
+  int posicao;
+
   enviarTitulo();
-  printf("Digite o valor a ser retirado: \n\nR$");
+  printf("Digite o valor que deseja depositar: \n");
   scanf("%f", &valor);
   system("cls");
 
-  // Verifica se o saldo do usuário é maior que o valor digitado.
-  if (saldo < valor)
+  if ((posicao = consultarCliente(file, cliente)) == -1)
   {
-    // Caso não possua saldo suficiente, ele receberá um erro.
     enviarTitulo();
-    printf("Voce nao possui saldo suficiente para realizar este saque.\n");
-    printf("Pressione qualquer tecla para voltar ao menu de clientes...\n");
+    printf("A sua conta esta com problema, tente novamente mais tarde.\n");
+    printf("Pressione qualquer tecla para voltar ao menu...\n");
     getch();
     system("cls");
 
-    // Ao pressionar qualquer tecla o programa retorna o usuário para o menu de clientes.
+    // Enviar o menu de cliente.
     enviarMenuCliente(file, cliente);
     return;
   }
 
-  // Recebe o valor e adiciona ao saldo do usuário.
-  saldo -= valor;
+  if (valor < 0)
+  {
+    enviarTitulo();
+    printf("O valor deve ser maior que 0.\n");
+    printf("Pressione qualquer tecla para tentar novamente...\n");
+    getch();
+    system("cls");
+    enviarMenuCliente(file, cliente);
+    return;
+  }
 
-  // Envia a resposta do programa para o usuário.
+  cliente.saldo += valor;
+
+  // Movimenta o ponteiro até as informações encontradas do cliente.
+  fseek(file, posicao * sizeof(cliente), SEEK_SET);
+
+  // Escreve as novas informações sobre as antigas dentro do arquivo.
+  fwrite(&cliente, sizeof(cliente), 1, file);
+
+  fclose(file);
+
+  // Envia resposta ao usuário
   enviarTitulo();
-  printf("Voce realizou um saque de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, saldo);
-  printf("Pressione qualquer tecla para voltar ao menu de clientes...\n");
+  printf("Voce realizou um deposito no valor de R$%.2f com sucesso.\n", valor);
+  printf("Seu saldo atualizado: R$%.2f\n", cliente.saldo);
+  printf("Pressione qualquer tecla para retornar ao menu...\n");
   getch();
   system("cls");
+  enviarMenuCliente(file, cliente);
+}
 
-  // Ao pressionar qualquer tecla o programa envia o menu de clientes novamente para o usuário.
+// Função para sacar um valor da conta do cliente.
+void sacar(Cliente cliente)
+{
+  // Tenta abrir o arquivo de clientes.
+  FILE *file = fopen("clientes.txt", "r+");
+
+  // Verifica se o arquivo não existir e tenta gerar um novo.
+  if (file == NULL)
+  {
+    printf("O arquivo de clientes nao foi encontrado. Tentando gerar um novo...\n");
+    file = fopen("clientes.txt", "w+");
+  }
+
+  float valor;
+  int posicao;
+
+  enviarTitulo();
+  printf("Digite o valor que deseja sacar: \n");
+  scanf("%f", &valor);
+  system("cls");
+
+  if ((posicao = consultarCliente(file, cliente)) == -1)
+  {
+    enviarTitulo();
+    printf("A sua conta esta com problema, tente novamente mais tarde.\n");
+    printf("Pressione qualquer tecla para voltar ao menu...\n");
+    getch();
+    system("cls");
+
+    // Enviar o menu de cliente.
+    enviarMenuCliente(file, cliente);
+    return;
+  }
+
+  if (valor < 0)
+  {
+    enviarTitulo();
+    printf("O valor deve ser maior que 0.\n");
+    printf("Pressione qualquer tecla para tentar novamente...\n");
+    getch();
+    system("cls");
+    enviarMenuCliente(file, cliente);
+    return;
+  }
+
+  if (valor > cliente.saldo)
+  {
+    enviarTitulo();
+    printf("Voce nao possui esse saldo suficiente para sacar.\n");
+    printf("Pressione qualquer tecla para tentar novamente...\n");
+    getch();
+    system("cls");
+    enviarMenuCliente(file, cliente);
+    return;
+  }
+
+  // Caso todas as condições sejam atendidas, o valor será sacado da conta do cliente.
+  cliente.saldo -= valor;
+
+  // Movimenta o ponteiro até as informações encontradas do cliente.
+  fseek(file, posicao * sizeof(cliente), SEEK_SET);
+
+  // Escreve as novas informações sobre as antigas dentro do arquivo.
+  fwrite(&cliente, sizeof(cliente), 1, file);
+
+  fclose(file);
+
+  // Envia resposta ao usuário
+  enviarTitulo();
+  printf("Voce realizou um saque no valor de R$%.2f com sucesso.\n", valor);
+  printf("Seu saldo atualizado: R$%.2f\n", cliente.saldo);
+  printf("Pressione qualquer tecla para retornar ao menu...\n");
+  getch();
+  system("cls");
   enviarMenuCliente(file, cliente);
 }
 
@@ -392,6 +415,9 @@ int alterarCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo)
       strcpy(cliente_antigo.endereco.bairro, cliente_novo.endereco.bairro);
       strcpy(cliente_antigo.endereco.cidade, cliente_novo.endereco.cidade);
       strcpy(cliente_antigo.endereco.estado, cliente_novo.endereco.estado);
+
+      cliente_antigo.saldo = cliente_novo.saldo;
+
       strcpy(cliente_antigo.senha, cliente_novo.senha);
       strcpy(cliente_antigo.tipoConta, cliente_novo.tipoConta);
 
@@ -807,17 +833,18 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
       switch (opcao)
       {
       case 1:
-        printf("Estamos coletando suas informacoes para continuar, aguarde...\n");
-        saldo(file, cliente);
+        // Requisita a função para visualizar o saldo da conta do cliente.
+        saldo(cliente);
         break;
 
       case 2:
-        printf("Estamos coletando suas informacoes para continuar, aguarde...\n");
-        depositar(file, cliente);
+        // Requisita a função que realiza um depósito na conta do cliente.
+        depositar(cliente);
         break;
 
       case 3:
-        sacar(file, cliente);
+        // Requisita a função que realiza um saque na conta do cliente.
+        sacar(cliente);
         break;
 
       case 6:
@@ -1400,6 +1427,19 @@ void enviarMenuFuncionario()
               gets(funcionario.nomeFuncionario);
               system("cls");
 
+              if ((posicao = consultarFuncionario(file, funcionario)) == -1)
+              {
+                enviarTitulo();
+                printf("O funcionario especificado nao foi encontrado.\n");
+                printf("Pressione qualquer tecla para voltar ao menu...\n");
+                getch();
+                system("cls");
+
+                // Enviar o menu de funcionários.
+                enviarMenuFuncionario();
+                return;
+              }
+
               // Dados do funcionário que serão alterados devem estar abaixo dessa linha.
               enviarTitulo();
               printf("Digite o novo nome do funcionario: \n");
@@ -1509,6 +1549,19 @@ void enviarMenuFuncionario()
               gets(cliente.nome);
               system("cls");
 
+              if ((posicao = consultarCliente(fileClientes, cliente)) == -1)
+              {
+                enviarTitulo();
+                printf("O cliente especificado nao foi encontrado.\n");
+                printf("Pressione qualquer tecla para voltar ao menu...\n");
+                getch();
+                system("cls");
+
+                // Enviar o menu de funcionários.
+                enviarMenuFuncionario();
+                return;
+              }
+
               // Dados do cliente que serão alterados devem estar abaixo dessa linha.
               enviarTitulo();
               printf("Digite o novo nome do cliente: \n");
@@ -1526,10 +1579,13 @@ void enviarMenuFuncionario()
               scanf("%d", &cliente_alterado.numDaConta);
               system("cls");
 
-              enviarTitulo();
-              printf("Digite o novo numero da agencia: \n");
-              scanf("%f", &cliente_alterado.limiteDaConta);
-              system("cls");
+              if (strcmp(cliente.tipoConta, "CC") == 0)
+              {
+                enviarTitulo();
+                printf("Digite o novo limite da conta: \n");
+                scanf("%f", &cliente_alterado.limiteDaConta);
+                system("cls");
+              }
 
               enviarTitulo();
               printf("Digite o novo numero de CPF: \n");
@@ -1542,10 +1598,13 @@ void enviarMenuFuncionario()
               scanf("%d %d %d", &cliente_alterado.nascimento.dia, &cliente_alterado.nascimento.mes, &cliente_alterado.nascimento.ano);
               system("cls");
 
-              enviarTitulo();
-              printf("Digite o dia, mes e ano da data de vencimento nova do cliente - 11 22 3333: \n");
-              scanf("%d %d %d", &cliente_alterado.vencimento.dia, &cliente_alterado.vencimento.mes, &cliente_alterado.vencimento.ano);
-              system("cls");
+              if (strcmp(cliente.tipoConta, "CC") == 0)
+              {
+                enviarTitulo();
+                printf("Digite o dia, mes e ano da data de vencimento nova do cliente - 11 22 3333: \n");
+                scanf("%d %d %d", &cliente_alterado.vencimento.dia, &cliente_alterado.vencimento.mes, &cliente_alterado.vencimento.ano);
+                system("cls");
+              }
 
               enviarTitulo();
               printf("Digite o novo numero de telefone do cliente: \n");
@@ -1581,6 +1640,11 @@ void enviarMenuFuncionario()
               printf("Digite o novo estado do cliente: \n");
               fflush(stdin);
               gets(cliente_alterado.endereco.estado);
+              system("cls");
+
+              enviarTitulo();
+              printf("O cliente possui R$%.2f em sua conta, digite o mesmo valor para manter ou outro valor para alterar: \n", cliente.saldo);
+              scanf("%f", &cliente_alterado.saldo);
               system("cls");
 
               enviarTitulo();

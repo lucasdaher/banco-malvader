@@ -5,6 +5,7 @@
 #include <locale.h>
 #include <unistd.h>
 
+// Valor padrão máximo de caracteres que uma senha poderá ter.
 #define DEFAULT_PASS_SIZE 16
 
 struct Data
@@ -54,7 +55,7 @@ struct Funcionario
 };
 
 // Declaração de todas as funções utilizadas no projeto.
-void enviarTitulo();                                                                              // Enviar título ASCII para o usuário antes das mensagens
+void enviarTitulo();                                                                              // Enviar título customizado para o usuário antes das mensagens
 void enviarMenuCliente(FILE *file, Cliente cliente);                                              // Envia o menu de clientes
 void enviarMenuFuncionario();                                                                     // Envia o menu de funcionarios
 void enviarMenuPrincipal();                                                                       // Envia o menu principal
@@ -78,17 +79,22 @@ void saldo(FILE *file, Cliente cliente)
   // Variável que contem a posição do ponteiro do seek.
   int posicao;
 
+  // Verifica se o cliente existe nos arquivos.
   if ((posicao = consultarCliente(file, cliente)) != -1)
   {
+    // Movimenta o ponteiro de busca dentro do arquivo.
     fseek(file, posicao * sizeof(cliente), SEEK_SET);
+    // Realiza a leitura do registro salvo dentro do arquivo.
     fread(&cliente, sizeof(cliente), 1, file);
 
+    // Envia a resposta para o usuário.
     enviarTitulo();
     printf("Saldo atual em sua conta R$%.2f\n\n", cliente.saldo);
     printf("Pressione qualquer tecla para voltar ao menu...\n");
     getch();
     system("cls");
 
+    // Retorna o usuário para o menu de clientes ao pressionar qualquer tecla.
     enviarMenuCliente(file, cliente);
   }
 }
@@ -96,13 +102,18 @@ void saldo(FILE *file, Cliente cliente)
 // Função para depositar um valor na conta do cliente.
 void depositar(FILE *file, Cliente cliente)
 {
+  // Essa variável receberá as modificações que serão feitas ao depositar.
   Cliente cliente_alterado;
+
+  // Posição em que uma variável da struct está posicionada.
   int posicao;
 
+  // Verifica a existência do cliente dentro dos arquivos.
   if ((posicao = consultarCliente(file, cliente)) != -1)
   {
     float valor;
 
+    // Solicita que o usuário informe o valor desejado para depósito.
     enviarTitulo();
     printf("Digite o valor a ser depositado: \n\nR$");
     scanf("%f", &valor);
@@ -114,7 +125,7 @@ void depositar(FILE *file, Cliente cliente)
     // Realiza a alteração do saldo do cliente no arquivo.
     alterarSaldoCliente(file, cliente, cliente_alterado);
 
-    // Enviar a mensagem com o saldo do usuário
+    // Envia a resposta do depósito para o usuário.
     enviarTitulo();
     printf("Conta: %s\n\n", cliente.nome);
     printf("Voce realizou um deposito de R$%.2f com sucesso. \n", valor);
@@ -123,7 +134,7 @@ void depositar(FILE *file, Cliente cliente)
     getch();
     system("cls");
 
-    // Enviar o menu de clientes novamente para o usuário.
+    // Ao pressionar qualquer tecla o usuário voltará para o menu de clientes.
     enviarMenuCliente(file, cliente);
   }
 }
@@ -131,108 +142,141 @@ void depositar(FILE *file, Cliente cliente)
 // Função que altera o saldo de um cliente no arquivo.
 int alterarSaldoCliente(FILE *file, Cliente cliente, Cliente cliente_alterado)
 {
+  // Variável que receberá o posicionamento da variável do registro no arquivo.
   int posicao;
 
-  // Verifica se o arquivo conseguiu ser aberto com sucesso
+  // Verifica se o arquivo foi aberto e lido com sucesso.
   if (file != NULL)
   {
+    // Consulta se o cliente existe dentro dos arquivos.
     posicao = consultarCliente(file, cliente);
     if (posicao != -1)
     {
+      // Movimenta o ponteiro de busca dentro do arquivo de clientes.
+      // O ponteiro irá se movimentar pelo tamanho em bytes da struct Cliente.
       fseek(file, posicao * sizeof(Cliente), SEEK_SET);
+
+      // Realiza a leitura de todos os dados que podem estar contidos na struct.
       fread(&cliente, sizeof(cliente), 1, file);
 
       // Copia os dados contidos no registro antigo e envia para o novo
       cliente.saldo = cliente_alterado.saldo;
 
+      // Movimenta o ponteiro até a localização dos dados que foram solicitados.
       fseek(file, posicao * sizeof(Cliente), SEEK_SET);
+
+      // Reescreve os dados atualizados em cima dos dados que já existiam.
       fwrite(&cliente, sizeof(cliente_alterado), 1, file);
 
-      // Enviando mensagem de confirmação...
-      return 1;
+      // Retorna 0 em caso de sucesso.
+      return 0;
     }
   }
-  return 0;
+  // Retorna -1 em caso de erros.
+  return -1;
 }
 
 // Função para realizar saques.
 void sacar(FILE *file, Cliente cliente)
 {
+  // Realiza a reabertura do arquivo de clientes no modo de leitura/escrita.
   file = fopen("clientes.txt", "r+");
   float saldo;
 
+  // Caso o arquivo não exista, o programa tentará gerar um novo.
   if (file == NULL)
   {
     printf("O arquivo nao foi encontrado, tentando gerar um novo.\n");
+    // Gera um novo arquivo utilizando o modo de leitura/escrita e substituição.
     file = fopen("clientes.txt", "w+");
   }
 
   float valor;
+  // Solicita o usuário a digitação de um valor para ser sacado.
   enviarTitulo();
   printf("Digite o valor a ser retirado: \n\nR$");
   scanf("%f", &valor);
   system("cls");
 
+  // Verifica se o saldo do usuário é maior que o valor digitado.
   if (saldo < valor)
   {
+    // Caso não possua saldo suficiente, ele receberá um erro.
     enviarTitulo();
     printf("Voce nao possui saldo suficiente para realizar este saque.\n");
-    printf("Por questoes de seguranca, estamos saindo do programa...\n");
-    exit(1);
+    printf("Pressione qualquer tecla para voltar ao menu de clientes...\n");
+    getch();
     system("cls");
+
+    // Ao pressionar qualquer tecla o programa retorna o usuário para o menu de clientes.
+    enviarMenuCliente(file, cliente);
     return;
   }
 
   // Recebe o valor e adiciona ao saldo do usuário.
   saldo -= valor;
 
+  // Envia a resposta do programa para o usuário.
   enviarTitulo();
   printf("Voce realizou um saque de R$%.2f com sucesso. \nSeu novo saldo: R$%.2f\n\n", valor, saldo);
-  printf("Pressione qualquer tecla para voltar ao menu de clientes.\n");
+  printf("Pressione qualquer tecla para voltar ao menu de clientes...\n");
   getch();
   system("cls");
 
-  // Enviar o menu de clientes novamente para o usuário.
+  // Ao pressionar qualquer tecla o programa envia o menu de clientes novamente para o usuário.
   enviarMenuCliente(file, cliente);
 }
 
 // Função que realiza a consulta nos arquivos sobre um cliente
 int consultarCliente(FILE *file, Cliente cliente)
 {
+  // Variável que será responsável por trazer os dados lidos dentro do arquivo.
   Cliente cliente_lido;
+
+  // Variável que recebe a posição do dado encontrado dentro do arquivo.
   int posicao;
 
-  // Caso o arquivo tenha sido aberto e lido com sucesso
+  // Verifica se o arquivo conseguiu ser aberto e executado com sucesso.
   if (file != NULL)
   {
-    // Define o ponteiro de busca para o ínicio do código
+    // Movimenta o ponteiro para o início do arquivo.
     fseek(file, 0L, SEEK_SET);
 
     // Define a posição inicial para 0
     posicao = 0;
 
+    // Irá realizar a leitura no arquivo enquanto não chegar ao fim do arquivo ou encontrar o cliente especificado.
     while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
     {
+      // Compara se o cliente que foi lido no arquivo é igual ao cliente que foi digitado pelo usuário.
       if (strcmpi(cliente_lido.nome, cliente.nome) == 0 &&
           (cliente_lido.excluido == 0))
+        // Caso o cliente seja encontrado, será retornado a posição que ele se encontra dentro do arquivo.
         return posicao;
+      // Caso não encontre, continuará aumentando a posição até chegar ao EoF do arquivo.
       posicao++;
     };
   }
+  // Retorna erro caso não seja encontrado.
   return -1;
 }
 
 // Função que insere os dados do cliente em um arquivo
 int inserirCliente(FILE *file, Cliente cliente)
 {
+  // Variável que será responsável por trazer os dados lidos dentro do arquivo.
   Cliente cliente_lido;
+
+  // Variável que recebe a posição do dado encontrado dentro do arquivo.
   int posicao;
 
+  // Verifica se o arquivo conseguiu ser aberto e executado com sucesso.
   if (file != NULL)
   {
+    // Define a posição inicial da variável no início do arquivo (0).
     posicao = 0;
 
-    // Procurar se a estrutura do cliente existe no arquivo.
+    // Verifica se o cliente existe dentro do arquivo de clientes.
     if (consultarCliente(file, cliente))
     {
       // Definindo o ponteiro de busca no início do arquivo
@@ -241,56 +285,76 @@ int inserirCliente(FILE *file, Cliente cliente)
       // Vai rodar enquanto não chegar ao fim do arquivo
       while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
       {
+        // Verifica se o cliente foi excluido do arquivo e trava a busca, retornando erro.
         if (cliente_lido.excluido == 1)
           break;
+        // Caso o cliente não tenha sido excluido, a posição aumenta até chegar ao EoF.
         posicao++;
       };
 
+      // Movimenta o ponteiro do fseek até chegar ao fim de uma única struct Cliente.
       fseek(file, posicao * sizeof(cliente), SEEK_SET);
+
+      // Define a conta do cliente como excluido = false (remove a exclusão de conta se ela já existe anteriormente).
       cliente.excluido = 0;
 
+      // Verifica se os dados foram escritos corretamente dentro do arquivo.
       if (fwrite(&cliente, sizeof(cliente), 1, file))
       {
+        // Envia a resposta de sucesso para o usuário e solicita o fechamento do programa para salvar...
         enviarTitulo();
         printf("O cliente foi cadastrado com sucesso.\n");
         printf("Pressione qualquer tecla para concluir o cadastro...\n");
         getch();
-        return 1;
+        // Retorna 0 em caso de sucesso.
+        return 0;
       }
     }
   }
-  return 0;
+  // Retorna -1 em caso de erro.
+  return -1;
 }
 
 // Função que exclui um funcionário dos registros.
 int excluirCliente(FILE *file, Cliente cliente)
 {
+  // Variável que irá receber a posição que o cliente se encontra dentro do arquivo.
   int posicao;
-  // Executa somente se o arquivo existir.
+
+  // Verifica se o arquivo conseguiu ser executado e lido com sucesso.
   if (file != NULL)
   {
+    // Verifica se o cliente existe no arquivo.
     posicao = consultarCliente(file, cliente);
-    // Verifica a existência do usuário dentro dos arquivos.
     if (posicao != -1)
     {
+      // Movimenta o ponteiro de busca do arquivo para o tamanho da struct Cliente.
       fseek(file, posicao * sizeof(cliente), SEEK_SET);
+
+      // Define o cliente como excluido.
       cliente.excluido = 1;
+
+      // Verifica se os dados foram subsituídos e o cliente excluído com sucesso.
       if (fwrite(&cliente, sizeof(cliente), 1, file))
       {
+        // Envia a mensagem de sucesso para o cliente.
         enviarTitulo();
         printf("Voce excluiu o cliente %s dos registros com sucesso.\n", cliente.nome);
         printf("Pressione qualquer tecla para finalizar...\n");
         system("cls");
-        return 1;
+        // Retorna 0 em caso de sucesso.
+        return 0;
       }
     }
   }
-  return 0;
+  // Retorna -1 em caso de erro.
+  return -1;
 }
 
 // Função que insere os dados do funcionário em um arquivo
 int inserirFuncionario(FILE *file, Funcionario funcionario)
 {
+
   Funcionario funcionario_lido;
   int posicao;
 

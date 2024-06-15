@@ -323,17 +323,18 @@ int inserirCliente(FILE *file, Cliente cliente)
       // Define a conta do cliente como excluido = false (remove a exclusão de conta se ela já existe anteriormente).
       cliente.excluido = 0;
 
-      // Verifica se os dados foram escritos corretamente dentro do arquivo.
-      if (fwrite(&cliente, sizeof(cliente), 1, file))
-      {
-        // Envia a resposta de sucesso para o usuário e solicita o fechamento do programa para salvar...
-        enviarTitulo();
-        printf("O cliente foi cadastrado com sucesso.\n");
-        printf("Pressione qualquer tecla para concluir o cadastro...\n");
-        getch();
-        // Retorna 0 em caso de sucesso.
-        return 0;
-      }
+      // Envia a resposta de sucesso para o usuário e solicita o fechamento do programa para salvar...
+      fwrite(&cliente, sizeof(cliente), 1, file);
+      enviarTitulo();
+      printf("O(a) cliente foi cadastrado(a) com sucesso.\n");
+      printf("Pressione qualquer tecla para concluir e salvar...\n");
+      getch();
+      system("cls");
+
+      // Ao pressionar qualquer tecla o usuário será movido de volta ao menu de funcionários.
+      enviarMenuFuncionario();
+      // Retorna 0 em caso de sucesso.
+      return 0;
     }
   }
   // Retorna -1 em caso de erro.
@@ -1912,8 +1913,32 @@ void enviarMenuPrincipal()
       if (strcmp(funcionario.nomeFuncionario, "admin") == 0)
       {
         // Envia o menu de funcionários sem senha caso o usuário seja administrador.
-        enviarMenuFuncionario();
-        // Retorna o código e não continua o resto da função.
+        char password[DEFAULT_PASS_SIZE];
+
+        enviarTitulo();
+        printf("Digite a senha de administrador: \n");
+        // Limpa o buffer do teclado
+        fflush(stdin);
+        gets(password);
+        system("cls");
+
+        if (validarSenhaAdmin(password) == 0)
+        {
+          // O acesso é liberado e o usuário será direcionado ao menu de funcionário.
+          enviarMenuFuncionario();
+        }
+        else if (validarSenhaAdmin(password) != 0)
+        {
+          enviarTitulo();
+          printf("A senha informada nao e valida.\n\n");
+          printf("Pressione qualquer tecla para voltar ao menu...\n");
+          getch();
+          system("cls");
+
+          // Ao pressionar qualquer tecla o usuário é movido para o menu principal novamente.
+          enviarMenuPrincipal();
+        }
+
         return;
       }
 

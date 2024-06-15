@@ -323,13 +323,18 @@ int inserirCliente(FILE *file, Cliente cliente)
       // Define a conta do cliente como excluido = false (remove a exclusão de conta se ela já existe anteriormente).
       cliente.excluido = 0;
 
-      // Envia a resposta de sucesso para o usuário e solicita o fechamento do programa para salvar...
+      // Salva os dados fornecidos dentro do arquivo de clientes.
       fwrite(&cliente, sizeof(cliente), 1, file);
+
+      // Envia a resposta de sucesso do programa.
       enviarTitulo();
       printf("O(a) cliente foi cadastrado(a) com sucesso.\n");
       printf("Pressione qualquer tecla para concluir e salvar...\n");
       getch();
       system("cls");
+
+      // Fecha o arquivo aberto anteriormente.
+      fclose(file);
 
       // Ao pressionar qualquer tecla o usuário será movido de volta ao menu de funcionários.
       enviarMenuFuncionario();
@@ -351,8 +356,7 @@ int excluirCliente(FILE *file, Cliente cliente)
   if (file != NULL)
   {
     // Verifica se o cliente existe no arquivo.
-    posicao = consultarCliente(file, cliente);
-    if (posicao != -1)
+    if ((posicao = consultarCliente(file, cliente)) != -1)
     {
       // Movimenta o ponteiro de busca do arquivo para o tamanho da struct Cliente.
       fseek(file, posicao * sizeof(cliente), SEEK_SET);
@@ -360,20 +364,23 @@ int excluirCliente(FILE *file, Cliente cliente)
       // Define o cliente como excluido.
       cliente.excluido = 1;
 
-      // Verifica se os dados foram subsituídos e o cliente excluído com sucesso.
-      if (fwrite(&cliente, sizeof(cliente), 1, file))
-      {
-        // Envia a mensagem de sucesso para o cliente.
-        enviarTitulo();
-        printf("Voce excluiu o cliente %s dos registros com sucesso.\n", cliente.nome);
-        printf("Pressione qualquer tecla para finalizar e salvar...\n");
-        getch();
-        system("cls");
-        // Encerrará o programa.
-        exit(1);
-        // Retorna 0 em caso de sucesso.
-        return 0;
-      }
+      // Insere a alteração de exclusão nos dados salvos do arquivo de clientes.
+      fwrite(&cliente, sizeof(cliente), 1, file);
+
+      // Envia a resposta do programa para o usuário.
+      enviarTitulo();
+      printf("Voce excluiu o cliente %s dos registros com sucesso.\n", cliente.nome);
+      printf("Pressione qualquer tecla para finalizar e salvar...\n");
+      getch();
+      system("cls");
+
+      // Fecha o arquivo aberto anteriormente.
+      fclose(file);
+
+      // Ao pressionar qualquer tecla o usuário será movido ao menu de funcionários.
+      enviarMenuFuncionario();
+      // Retorna 0 em caso de sucesso.
+      return 0;
     }
   }
   // Retorna -1 em caso de erro.
@@ -523,20 +530,23 @@ int excluirFuncionario(FILE *file, Funcionario funcionario)
       // Define o funcionário como excluído = true.
       funcionario.excluido = 1;
 
-      // Verifica se a alteração foi realizada com sucesso no arquivo.
-      if (fwrite(&funcionario, sizeof(funcionario), 1, file))
-      {
-        // Envia a resposta da inseração para o usuário.
-        enviarTitulo();
-        printf("Voce excluiu este funcionario dos registros com sucesso.\n");
-        printf("Pressione qualquer tecla para finalizar e salvar...\n");
-        getch();
-        system("cls");
-        // Encerra o programa.
-        exit(1);
-        // Retorna 0 em caso de sucesso.
-        return 0;
-      }
+      // Modifica os dados existentes do funcionário dentro do arquivo.
+      fwrite(&funcionario, sizeof(funcionario), 1, file);
+
+      // Envia a mensagem de sucesso para o usuário.
+      enviarTitulo();
+      printf("Voce excluiu este funcionario dos registros com sucesso.\n");
+      printf("Pressione qualquer tecla para concluir e salvar...\n");
+      getch();
+      system("cls");
+
+      // Fecha o arquivo aberto anteriormente.
+      fclose(file);
+
+      // Ao pressionar qualquer tecla o usuário será movido ao menu de funcionários.
+      enviarMenuFuncionario();
+      // Retorna 0 em caso de sucesso.
+      return 0;
     }
   }
   // Retorna -1 em caso de erro.
@@ -870,7 +880,7 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
       // Verifica o tipo de conta do cliente e envia uma mensagem específica para cada caso.
       if (strcmp(cliente.tipoConta, "CC") == 0)
       {
-        printf("Seu limite atual: %.2f\n", cliente.limiteDaConta);
+        printf("Seu limite atual: %.2f\n\n", cliente.limiteDaConta);
         printf("Pressione qualquer tecla para retornar ao menu...\n");
       }
       else if (strcmp(cliente.tipoConta, "CP") == 0)
@@ -1042,6 +1052,11 @@ void enviarMenuAberturaConta()
         system("cls");
 
         enviarTitulo();
+        printf("Informe o limite da conta do cliente: \n");
+        scanf("%f", &cliente.limiteDaConta);
+        system("cls");
+
+        enviarTitulo();
         printf("Informe o numero do CPF do cliente: \n");
         fflush(stdin);
         gets(cliente.cpf);
@@ -1113,7 +1128,6 @@ void enviarMenuAberturaConta()
 
         // Requisita a função que insere os dados fornecidos pelo usuário no arquivo de clientes.
         inserirCliente(file, cliente);
-
         break;
 
       // Voltar
@@ -1368,7 +1382,7 @@ void enviarMenuFuncionario()
             // Verifica se o tipo de conta é corrente para enviar o limite da conta
             if (strcmp(cliente.tipoConta, "CC") == 0)
             {
-              printf("Limite da Conta: R$%.2f", cliente.limiteDaConta);
+              printf("Limite da Conta: R$%.2f\n", cliente.limiteDaConta);
             }
             printf("CPF: %s\n", cliente.cpf);
 
@@ -1387,17 +1401,17 @@ void enviarMenuFuncionario()
             printf("Saldo: R$%.2f\n", cliente.saldo);
             if (cliente.excluido == 0)
             {
-              printf("O cliente esta ativo.\n");
+              printf("Status: Conta ativa\n");
             }
             else if (cliente.excluido == 1)
             {
-              printf("O cliente foi excluido.\n");
+              printf("Status: Conta desativada.\n");
             }
             else
             {
-              printf("Um erro foi encontrado neste cliente.\n");
+              printf("Status: Erro.\n");
             }
-            printf("\nSenha: %s\n\n", cliente.senha);
+            printf("Senha: %s\n\n", cliente.senha);
 
             printf("Pressione qualquer tecla para retornar ao menu...\n");
             getch();

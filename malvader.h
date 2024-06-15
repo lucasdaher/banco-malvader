@@ -437,12 +437,16 @@ int alterarCliente(FILE *file, Cliente cliente_antigo, Cliente cliente_novo)
 
       // Envia a resposta para o usuário.
       enviarTitulo();
-      printf("Os dados deste cliente foram alterados com sucesso.\n");
+      printf("Os dados deste cliente foram alterados com sucesso.\n\n");
       printf("Pressione qualquer tecla para finalizar.\n");
       getch();
       system("cls");
-      // Encerra o programa.
-      exit(1);
+
+      // Fecha o arquivo e conclui o salvamento dos novos dados.
+      fclose(file);
+
+      // Envia o usuário para o menu de funcionários novamente.
+      enviarMenuFuncionario();
       // Retorna 0 em caso de sucesso.
       return 0;
     }
@@ -1478,9 +1482,11 @@ void enviarMenuFuncionario()
             if (validarSenhaAdmin(password) != 0)
             {
               enviarTitulo();
-              printf("\nA senha digitada esta incorreta, voltando ao menu de funcionarios. \n\n");
+              printf("A senha digitada esta incorreta\n\n");
+              printf("Pressione qualquer tecla para retornar ao menu...\n");
+              getch();
               system("cls");
-              sleep(5);
+
               enviarMenuFuncionario();
             }
 
@@ -1630,6 +1636,9 @@ void enviarMenuFuncionario()
                 enviarMenuFuncionario();
                 return;
               }
+
+              fseek(fileClientes, posicao * sizeof(cliente), SEEK_SET);
+              fread(&cliente, sizeof(cliente), 1, fileClientes);
 
               // Dados do cliente que serão alterados devem estar abaixo dessa linha.
               enviarTitulo();

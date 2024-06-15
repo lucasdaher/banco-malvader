@@ -1575,7 +1575,7 @@ void enviarMenuFuncionario()
               system("cls");
 
               enviarTitulo();
-              printf("Digite o novo cidade do funcionario: \n");
+              printf("Digite a nova cidade do funcionario: \n");
               fflush(stdin);
               gets(funcionario_alterado.endereco.cidade);
               system("cls");

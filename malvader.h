@@ -117,7 +117,7 @@ void depositar(Cliente cliente)
   // Verifica se o arquivo não existir e tenta gerar um novo.
   if (file == NULL)
   {
-    printf("O arquivo de clientes nao foi encontrado. Tentando gerar um novo...\n");
+    printf("O arquivo de clientes nao foi encontrado, tentando gerar um novo...\n");
     file = fopen("clientes.txt", "w+");
   }
 
@@ -126,6 +126,7 @@ void depositar(Cliente cliente)
 
   enviarTitulo();
   printf("Digite o valor que deseja depositar: \n");
+  printf("R$");
   scanf("%f", &valor);
   system("cls");
 
@@ -166,7 +167,7 @@ void depositar(Cliente cliente)
   // Envia resposta ao usuário
   enviarTitulo();
   printf("Voce realizou um deposito no valor de R$%.2f com sucesso.\n", valor);
-  printf("Seu saldo atualizado: R$%.2f\n", cliente.saldo);
+  printf("Seu saldo atualizado: R$%.2f\n\n", cliente.saldo);
   printf("Pressione qualquer tecla para retornar ao menu...\n");
   getch();
   system("cls");
@@ -191,6 +192,7 @@ void sacar(Cliente cliente)
 
   enviarTitulo();
   printf("Digite o valor que deseja sacar: \n");
+  printf("R$");
   scanf("%f", &valor);
   system("cls");
 
@@ -243,7 +245,7 @@ void sacar(Cliente cliente)
   // Envia resposta ao usuário
   enviarTitulo();
   printf("Voce realizou um saque no valor de R$%.2f com sucesso.\n", valor);
-  printf("Seu saldo atualizado: R$%.2f\n", cliente.saldo);
+  printf("Seu saldo atualizado: R$%.2f\n\n", cliente.saldo);
   printf("Pressione qualquer tecla para retornar ao menu...\n");
   getch();
   system("cls");
@@ -809,7 +811,8 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
   if (file == NULL)
   {
     printf("O registro de clientes não foi encontrado no sistema, gerando um novo.\n");
-    file = fopen("clientes.txt", "w+"); // Tentativa de criar o arquivo
+    // Tenta gerar o arquivo de clientes caso ele não exista.
+    file = fopen("clientes.txt", "w+");
   }
 
   // Verifica se o arquivo foi aberto e executa o contexto.

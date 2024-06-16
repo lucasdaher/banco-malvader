@@ -82,6 +82,7 @@ void saldo(Cliente cliente)
   if (file == NULL)
   {
     printf("O arquivo de clientes nao foi encontrado. Tentando gerar um novo...\n");
+    // Tenta gerar um novo arquivo caso não exista.
     file = fopen("clientes.txt", "w+");
   }
 
@@ -118,10 +119,14 @@ void depositar(Cliente cliente)
   if (file == NULL)
   {
     printf("O arquivo de clientes nao foi encontrado, tentando gerar um novo...\n");
+    // Tenta gerar um novo arquivo caso não exista.
     file = fopen("clientes.txt", "w+");
   }
 
+  // Variável que armazenará o valor informado pelo usuário.
   float valor;
+
+  // Variável que armazenará a posição do cliente dentro do arquivo lido.
   int posicao;
 
   enviarTitulo();
@@ -130,6 +135,7 @@ void depositar(Cliente cliente)
   scanf("%f", &valor);
   system("cls");
 
+  // Verifica a existência do cliente nos arquivos.
   if ((posicao = consultarCliente(file, cliente)) == -1)
   {
     enviarTitulo();
@@ -143,6 +149,7 @@ void depositar(Cliente cliente)
     return;
   }
 
+  // Verifica se o valor informado pelo usuário é menor do que 0 e envia um erro.
   if (valor < 0)
   {
     enviarTitulo();
@@ -154,6 +161,7 @@ void depositar(Cliente cliente)
     return;
   }
 
+  // Soma o valor que o cliente já possui com o valor informado.
   cliente.saldo += valor;
 
   // Movimenta o ponteiro até as informações encontradas do cliente.
@@ -162,15 +170,18 @@ void depositar(Cliente cliente)
   // Escreve as novas informações sobre as antigas dentro do arquivo.
   fwrite(&cliente, sizeof(cliente), 1, file);
 
+  // Fecha e salva o arquivo que foi aberto anteriormente.
   fclose(file);
 
-  // Envia resposta ao usuário
+  // Envia a resposta de sucesso ao usuário.
   enviarTitulo();
   printf("Voce realizou um deposito no valor de R$%.2f com sucesso.\n", valor);
   printf("Seu saldo atualizado: R$%.2f\n\n", cliente.saldo);
   printf("Pressione qualquer tecla para retornar ao menu...\n");
   getch();
   system("cls");
+
+  // Ao pressionar qualquer tecla o usuário retorna ao menu de clientes.
   enviarMenuCliente(file, cliente);
 }
 
@@ -184,18 +195,24 @@ void sacar(Cliente cliente)
   if (file == NULL)
   {
     printf("O arquivo de clientes nao foi encontrado. Tentando gerar um novo...\n");
+    // Tenta gerar um arquivo no modo de escrita e leitura.
     file = fopen("clientes.txt", "w+");
   }
 
+  // Variável que receberá o valor desejado para o saque.
   float valor;
+
+  // Variável que armazenará a posição que o cliente se encontra dentro do arquivo.
   int posicao;
 
+  // Requisita que o usuário informe um valor para sacar.
   enviarTitulo();
   printf("Digite o valor que deseja sacar: \n");
   printf("R$");
   scanf("%f", &valor);
   system("cls");
 
+  // Verifica a existência do cliente nos arquivos.
   if ((posicao = consultarCliente(file, cliente)) == -1)
   {
     enviarTitulo();
@@ -209,6 +226,7 @@ void sacar(Cliente cliente)
     return;
   }
 
+  // Verifica se o valor informado é menor do que 0 e envia um erro.
   if (valor < 0)
   {
     enviarTitulo();
@@ -220,10 +238,11 @@ void sacar(Cliente cliente)
     return;
   }
 
+  // Verifica se o valor digitado é maior que o saldo do cliente e retorna um erro.
   if (valor > cliente.saldo)
   {
     enviarTitulo();
-    printf("Voce nao possui esse saldo suficiente para sacar.\n");
+    printf("Voce nao possui saldo suficiente para sacar.\n");
     printf("Pressione qualquer tecla para tentar novamente...\n");
     getch();
     system("cls");
@@ -591,12 +610,22 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
       strcpy(funcionario_antigo.endereco.cidade, funcionario_novo.endereco.cidade);
       strcpy(funcionario_antigo.endereco.estado, funcionario_novo.endereco.estado);
 
+      // Movimenta o ponteiro até a localização do funcionário.
       fseek(file, posicao * sizeof(Funcionario), SEEK_SET);
+
+      // Realiza a inseração dos novos dados sobre os dados antigos dentro do arquivo.
       fwrite(&funcionario_antigo, sizeof(funcionario_novo), 1, file);
 
       enviarTitulo();
       printf("Os dados deste funcionario foram alterados com sucesso.\n");
+      getch();
       system("cls");
+
+      // Fecha o arquivo e salva os dados que foram alterados.
+      fclose(file);
+
+      // Envia o menu de funcionários ao pressionar qualquer tecla.
+      enviarMenuFuncionario();
       return 1;
     }
   }
@@ -1307,8 +1336,9 @@ void enviarMenuFuncionario()
         {
         case 1:
           enviarTitulo();
-          fflush(stdin);
+          fflush(stdin); // Limpa o buffer do teclado.
           printf("Digite o nome do funcionario desejado: \n");
+          // Recebe o nome do funcionário que foi informado.
           gets(funcionario.nomeFuncionario);
           system("cls");
 
@@ -1327,10 +1357,14 @@ void enviarMenuFuncionario()
           // Caso o funcionário exista, ele irá executar o código.
           if ((posicao = consultarFuncionario(file, funcionario)) != -1)
           {
+            // Movimenta o ponteiro do fseek até o local onde o funcionário está.
             fseek(file, posicao * sizeof(funcionario), SEEK_SET);
+
+            // Realiza a leitura dos dados de onde o ponteiro que leu o funcionário está localizado.
             fread(&funcionario, sizeof(funcionario), 1, file);
 
             enviarTitulo();
+            // Limpa o buffer do teclado.
             fflush(stdin);
             printf("Mostrando informacoes do(a) funcionario(a) %s:\n\n", funcionario.nomeFuncionario);
             printf("Codigo: %d\n", funcionario.codigoFuncionario);
@@ -1342,11 +1376,26 @@ void enviarMenuFuncionario()
             printf("Endereco: %s, %s, %s, %s, %s\n", funcionario.endereco.endereco, funcionario.endereco.cep,
                    funcionario.endereco.bairro, funcionario.endereco.cidade,
                    funcionario.endereco.estado);
+            // Realiza uma verificação de qual a situação do funcionario e envia de acordo com o retorno.
+            if (funcionario.excluido == 0)
+            {
+              printf("Status: Conta ativa\n");
+            }
+            else if (funcionario.excluido == 1)
+            {
+              printf("Status: Conta desativada.\n");
+            }
+            else
+            {
+              printf("Status: Erro.\n");
+            }
             printf("Senha: %s\n", funcionario.senhaFuncionario);
 
             printf("\nPressione qualquer tecla para voltar ao menu...\n");
             getch();
             system("cls");
+
+            // Envia o menu de funcionários ao pressionar qualquer tecla.
             enviarMenuFuncionario();
           }
           break;
@@ -1374,11 +1423,15 @@ void enviarMenuFuncionario()
           // Caso o cliente exista ele irá executar o código.
           if ((posicao = consultarCliente(fileClientes, cliente)) != -1)
           {
+            // Movimenta o ponteiro de busca até a posição onde o cliente se encontra.
             fseek(fileClientes, posicao * sizeof(cliente), SEEK_SET);
+
+            // Realiza a leitura dos dados de onde o ponteiro de busca está localizado.
             fread(&cliente, sizeof(cliente), 1, fileClientes);
 
             enviarTitulo();
             printf("Mostrando informacoes do(a) cliente %s:\n\n", cliente.nome);
+            // Essa função formata a sigla do tipo de conta para um texto maior.
             formatarTipoConta(cliente); // Enviar tipo de conta do cliente.
             printf("Agencia: %d\n", cliente.agencia);
             printf("Numero da Conta: %d\n", cliente.numDaConta);
@@ -1402,6 +1455,8 @@ void enviarMenuFuncionario()
                    cliente.endereco.bairro, cliente.endereco.cidade,
                    cliente.endereco.estado);
             printf("Saldo: R$%.2f\n", cliente.saldo);
+
+            // Realiza uma verificação de qual a situação do cliente e envia de acordo com o retorno.
             if (cliente.excluido == 0)
             {
               printf("Status: Conta ativa\n");
@@ -2030,13 +2085,18 @@ void enviarMenuPrincipal()
       getch();
       system("cls");
 
+      // Ao pressionar qualquer tecla o usuário será redirecionado ao menu principal.
       enviarMenuPrincipal();
       break;
     }
 
+    // Fecha os arquivos que foram abertos anteriormente.
     fclose(file);
+    fclose(fileCliente);
     // O bloco de código acima será executado enquanto a opção não for (1, 2 ou 3)
   } while (option <= 0 || option > 3);
 
+  // Fecha os arquivos que foram abertos anteriormente.
   fclose(file);
+  fclose(fileCliente);
 }

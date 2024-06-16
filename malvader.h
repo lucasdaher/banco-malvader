@@ -569,10 +569,13 @@ int alterarFuncionario(FILE *file, Funcionario funcionario_antigo, Funcionario f
     // Verifica se o funcionário existe dentro dos arquivos.
     if ((posicao = consultarFuncionario(file, funcionario_antigo)) != -1)
     {
+      // Movimenta o ponteiro de busca para onde o funcionário está localizado.
       fseek(file, posicao * sizeof(Funcionario), SEEK_SET);
+
+      // Realiza a leitura dos dados da struct Funcionario salva no arquivo.
       fread(&funcionario_antigo, sizeof(funcionario_antigo), 1, file);
 
-      // Copia os dados contidos no registro antigo e envia para o novo
+      // Atualiza os dados que estavam no arquivo pelos novos dados informados.
       strcpy(funcionario_antigo.nomeFuncionario, funcionario_novo.nomeFuncionario);
       strcpy(funcionario_antigo.cpf, funcionario_novo.cpf);
       funcionario_antigo.codigoFuncionario = funcionario_novo.codigoFuncionario;
@@ -720,19 +723,8 @@ void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
       gets(password);
       system("cls");
 
-      // Consulta a existência do funcionário nos arquivos.
-      if ((posicao = consultarFuncionario(file, funcionario)) == -1)
-      {
-        enviarTitulo();
-        printf("Este funcionario nao esta cadastrado.\n");
-        printf("Pressione qualquer tecla para retornar ao menu...\n");
-        getch();
-        enviarMenuPrincipal();
-        return;
-      }
-
-      // Compara a senha digitada pela senha do funcionario
-      if (strcmp(password, funcionario.senhaFuncionario) == 0) // Se der erro irá retornar 1, 0 é válido.
+      // Verifica a se a senha digitada é a mesma senha do funcionário informado.
+      if (strcmp(password, funcionario.senhaFuncionario) == 0)
       {
         acesso = 1;
         enviarTitulo();
@@ -740,26 +732,33 @@ void validarSenhaFuncionario(FILE *file, Funcionario funcionario)
         system("cls");
 
         enviarMenuFuncionario();
+        return;
       }
+      // Verifica se a senha digitada é a mesma da senha de administrador.
       else if (strcmp(password, passwordAdm) == 0)
       {
+        // Libera o acesso do usuário.
         acesso = 1;
         enviarTitulo();
         printf("Autenticado(a) utilizando a senha de administrador.\n");
         system("cls");
 
         enviarMenuFuncionario();
+        return;
       }
       else
       {
-        // Bloqueia o acesso.
+        // Bloqueia o acesso do usuário.
         acesso = 0;
         enviarTitulo();
         printf("A senha digitada esta incorreta.\n");
         printf("Pressione qualquer tecla para tentar novamente...\n");
         getch();
         system("cls");
+
+        // Ao pressionar qualquer tecla, o usuário retornará ao menu principal.
         enviarMenuPrincipal();
+        return;
       }
     }
 
@@ -1940,16 +1939,19 @@ void enviarMenuPrincipal()
 
         enviarTitulo();
         printf("Digite a senha de administrador: \n");
-        // Limpa o buffer do teclado
+        // Limpa o buffer do teclado.
         fflush(stdin);
+        // Recebe a senha digitada pelo usuário.
         gets(password);
         system("cls");
 
+        // Verifica se caso a senha foi digitada corretamente.
         if (validarSenhaAdmin(password) == 0)
         {
           // O acesso é liberado e o usuário será direcionado ao menu de funcionário.
           enviarMenuFuncionario();
         }
+        // Verifica se caso a senha foi digitada incorretamente.
         else if (validarSenhaAdmin(password) != 0)
         {
           enviarTitulo();

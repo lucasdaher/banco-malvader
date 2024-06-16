@@ -4,6 +4,7 @@
 #include <string.h>
 #include <locale.h>
 #include <unistd.h>
+#include <time.h>
 
 // Valor padrão máximo de caracteres que uma senha poderá ter.
 #define DEFAULT_PASS_SIZE 16
@@ -259,6 +260,7 @@ void sacar(Cliente cliente)
   // Escreve as novas informações sobre as antigas dentro do arquivo.
   fwrite(&cliente, sizeof(cliente), 1, file);
 
+  // Fecha e salva o arquivo de clientes.
   fclose(file);
 
   // Envia resposta ao usuário
@@ -268,6 +270,7 @@ void sacar(Cliente cliente)
   printf("Pressione qualquer tecla para retornar ao menu...\n");
   getch();
   system("cls");
+
   enviarMenuCliente(file, cliente);
 }
 

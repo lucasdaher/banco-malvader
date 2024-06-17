@@ -74,6 +74,53 @@ void saldo(Cliente cliente);                                                    
 void depositar(Cliente cliente);                                                                  // Depositar um valor na conta de um cliente.
 void sacar(Cliente cliente);                                                                      // Sacar um valor da conta de um cliente.
 
+int criarMovimento()
+{
+  FILE *file;
+
+  // Cria a pasta de movimentações caso ela não exista.
+  mkdir("movimentos");
+
+  char nomeCliente[256];
+  printf("Digite o nome do cliente para movimentacao: \n");
+  fflush(stdin);
+  gets(nomeCliente);
+
+  // Salva o arquivo com o nome informado a cima em uma pasta movimento.
+  char path[256];
+  snprintf(path, 256, "movimentos/%s.txt", nomeCliente);
+
+  // Tenta abrir o arquivo.
+  file = fopen(path, "r+");
+
+  // Verifica se o arquivo NÃO existe.
+  if (file == NULL)
+  {
+    enviarTitulo();
+    printf("Nao existem movimentacoes deste usuario, criando novo extrato...\n");
+    // Tenta gerar um novo arquivo caso ele não exista.
+    file = fopen(path, "w+");
+  }
+
+  fprintf(file, "%s Sacou 10000", nomeCliente);
+  fprintf(file, "\n");
+
+  // Fecha e salva o arquivo aberto anteriormente.
+  fclose(file);
+
+  enviarTitulo();
+  printf("Realizando abertura do extrato no Excel.\n");
+  printf("Pressione qualquer tecla para voltar ao menu...\n");
+  system("start excel.exe extrato.xlsx");
+  getch();
+  system("cls");
+
+  enviarMenuPrincipal();
+
+  // Retorna 0 em caso de sucesso.
+  return 0;
+}
+
 // Função que mostra o saldo do cliente.
 void saldo(Cliente cliente)
 {
@@ -906,7 +953,8 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
     // Saques
     case 3:
       // Requisita a função que realiza um saque na conta do cliente.
-      sacar(cliente);
+      // sacar(cliente);
+      criarMovimento();
       break;
 
     // Extrato

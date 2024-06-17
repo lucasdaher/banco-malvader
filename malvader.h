@@ -5,16 +5,10 @@
 #include <locale.h>
 #include <unistd.h>
 #include <time.h>
+#include <windows.h>
 
 // Valor padrão máximo de caracteres que uma senha poderá ter.
 #define DEFAULT_PASS_SIZE 16
-
-struct Transacao
-{
-  char nome[25];
-  char tipo[2];
-  float valor;
-};
 
 struct Data
 {
@@ -79,41 +73,6 @@ void validarSenhaFuncionario(FILE *file, Funcionario funcionario);              
 void saldo(Cliente cliente);                                                                      // Mostrar o saldo de um cliente.
 void depositar(Cliente cliente);                                                                  // Depositar um valor na conta de um cliente.
 void sacar(Cliente cliente);                                                                      // Sacar um valor da conta de um cliente.
-int consultarExtrato(FILE *file, Cliente cliente, Transacao transacao);                           // Consulta a existência de um extrato nos arquivos.
-
-// Função que consulta o extrato.
-int consultarExtrato(FILE *file, Cliente cliente, Transacao transacao)
-{
-  // Declaração das variáveis da struct que retorna o valor de dentro do arquivo.
-  Cliente cliente_lido;
-  Transacao transacao_lida;
-
-  // Variável que irá receber a posição da struct dentro do arquivo.
-  int posicao;
-
-  // Verifica se o arquivo existir.
-  if (file != NULL)
-  {
-    // Movimenta o ponteiro para o topo do arquivo.
-    fseek(file, 0L, SEEK_SET);
-
-    // Define a posição como 0, para que ela esteja no início.
-    posicao = 0;
-
-    // Realiza a leitura de todo o arquivo.
-    while (fread(&cliente_lido, sizeof(cliente_lido), 1, file))
-    {
-      // Verifica a existência do cliente especificado e se ele está excluído.
-      if (strcmpi(cliente_lido.nome, cliente.nome) == 0 && (cliente_lido.excluido == 0))
-        // Retornando a posição do cliente caso o nome lido e o especificado sejam iguais.
-        return posicao;
-      // Adiciona uma nova posição caso o cliente não seja encontrado.
-      posicao++;
-    };
-  }
-  // Retorna -1 em caso de erro.
-  return -1;
-}
 
 // Função que mostra o saldo do cliente.
 void saldo(Cliente cliente)
@@ -948,6 +907,25 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
     case 3:
       // Requisita a função que realiza um saque na conta do cliente.
       sacar(cliente);
+      break;
+
+    // Extrato
+    case 4:
+      // Envia a mensagem para o usuário
+      enviarTitulo();
+      printf("Realizando abertura do extrato.\n");
+      printf("Pressione qualquer tecla para voltar ao menu...\n");
+      file = fopen("extratoteste.txt", "w");
+      // Fecha o arquivo de extrato
+      fclose(file);
+      // Realiza a abertura do arquivo de extrato.
+      // system("start excel.exe movimentacao.xlsx");
+      system("start excel.exe extrato.xlsx");
+      getch();
+      system("cls");
+
+      // Enviar o menu de clientes ao pressionar qualquer tecla.
+      enviarMenuCliente(file, cliente);
       break;
 
       // Consultando limite

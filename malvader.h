@@ -82,6 +82,7 @@ void depositar(Cliente cliente);                                                
 void sacar(Cliente cliente);                                                                      // Sacar um valor da conta de um cliente.
 int criarMovimento(Cliente cliente, char tipo[15], double valor);                                 // Cria uma movimentação na conta de um cliente.
 
+// Função que cria uma movimentação no extrato do cliente.
 int criarMovimento(Cliente cliente, char tipo[15], double valor)
 {
   Transacao transacao;

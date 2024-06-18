@@ -225,6 +225,7 @@ void depositar(Cliente cliente)
   int posicao;
 
   enviarTitulo();
+  printf("Seu saldo atual R$%.2f\n", cliente.saldo);
   printf("Digite o valor que deseja depositar: \n");
   printf("R$");
   scanf("%f", &valor);
@@ -303,6 +304,7 @@ void sacar(Cliente cliente)
 
   // Requisita que o usuário informe um valor para sacar.
   enviarTitulo();
+  printf("Seu saldo atual R$%.2f\n", cliente.saldo);
   printf("Digite o valor que deseja sacar: \n");
   printf("R$");
   scanf("%f", &valor);

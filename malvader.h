@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
@@ -5,7 +6,6 @@
 #include <locale.h>
 #include <unistd.h>
 #include <time.h>
-#include <windows.h>
 
 // Valor padrão máximo de caracteres que uma senha poderá ter.
 #define DEFAULT_PASS_SIZE 16

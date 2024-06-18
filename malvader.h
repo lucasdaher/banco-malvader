@@ -56,6 +56,13 @@ struct Funcionario
   char excluido;
 };
 
+struct Transacao
+{
+  char nome[25];
+  char tipo[15];
+  float valor;
+};
+
 void enviarTitulo();                                                                              // Enviar título customizado para o usuário antes das mensagens
 void enviarMenuCliente(FILE *file, Cliente cliente);                                              // Envia o menu de clientes
 void enviarMenuFuncionario();                                                                     // Envia o menu de funcionarios
@@ -73,49 +80,87 @@ void validarSenhaFuncionario(FILE *file, Funcionario funcionario);              
 void saldo(Cliente cliente);                                                                      // Mostrar o saldo de um cliente.
 void depositar(Cliente cliente);                                                                  // Depositar um valor na conta de um cliente.
 void sacar(Cliente cliente);                                                                      // Sacar um valor da conta de um cliente.
+int criarMovimento(Cliente cliente, char tipo[15], double valor);                                 // Cria uma movimentação na conta de um cliente.
 
-int criarMovimento()
+int criarMovimento(Cliente cliente, char tipo[15], double valor)
 {
+  Transacao transacao;
   FILE *file;
 
   // Cria a pasta de movimentações caso ela não exista.
   mkdir("movimentos");
 
-  char nomeCliente[256];
-  printf("Digite o nome do cliente para movimentacao: \n");
-  fflush(stdin);
-  gets(nomeCliente);
-
   // Salva o arquivo com o nome informado a cima em uma pasta movimento.
   char path[256];
-  snprintf(path, 256, "movimentos/%s.txt", nomeCliente);
+  snprintf(path, 256, "movimentos/%s.txt", cliente.nome);
 
   // Tenta abrir o arquivo.
-  file = fopen(path, "r+");
+  file = fopen(path, "a+");
 
-  // Verifica se o arquivo NÃO existe.
+  // Verifica se o arquivo NÃO existe e tenta criar um.
   if (file == NULL)
   {
-    enviarTitulo();
-    printf("Nao existem movimentacoes deste usuario, criando novo extrato...\n");
-    // Tenta gerar um novo arquivo caso ele não exista.
-    file = fopen(path, "w+");
+    // Tenta gerar um novo arquivo para o cliente caso ele não exista.
+    file = fopen(path, "a+");
   }
 
-  fprintf(file, "%s Sacou 10000", nomeCliente);
+  // Recebe o valor da transação.
+  transacao.valor = valor;
+
+  // Define o tipo de transação para saque
+  strcpy(transacao.tipo, tipo);
+
+  // Define o nome do cliente da transação com o nome do cliente que realizou a ação.
+  strcpy(transacao.nome, cliente.nome);
+
+  // Insere os dados no arquivo
+  fprintf(file, "%s ", transacao.nome);
+  fprintf(file, "%s ", transacao.tipo);
+  fprintf(file, "%.2lf", transacao.valor);
   fprintf(file, "\n");
 
-  // Fecha e salva o arquivo aberto anteriormente.
+  // Fecha e salva os dados informados.
   fclose(file);
 
-  enviarTitulo();
-  printf("Realizando abertura do extrato no Excel.\n");
-  printf("Pressione qualquer tecla para voltar ao menu...\n");
-  system("start excel.exe extrato.xlsx");
-  getch();
-  system("cls");
+  // Declaração dos arquivos de origem e destino.
+  FILE *origem, *destino;
 
-  enviarMenuPrincipal();
+  // Tenta abrir o arquivo de origem no modo de leitura.
+  origem = fopen(path, "r");
+
+  // Verifica se o arquivo NÃO EXISTE.
+  if (origem == NULL)
+  {
+    printf("Nao foi possível abrir o arquivo de origem.\n");
+    return -1;
+  }
+
+  // Tenta abrir o arquivo de destino no modo de reset.
+  destino = fopen("extrato.txt", "w");
+
+  // Verifica se o arquivo NÃO EXISTE.
+  if (destino == NULL)
+  {
+    printf("Nao foi possível abrir o arquivo de destino.\n");
+    return -1;
+  }
+
+  // Declaração da variável que receberá a linha que será copiada.
+  char line[256];
+
+  // Laço que irá receber todas as linhas do arquivo.
+  while (fgets(line, sizeof(line), origem))
+  {
+    // Recebe todos os dados que estão inseridos na linha do arquivo.
+    sscanf(line, "%s %s %f", transacao.nome, transacao.tipo, &transacao.valor);
+
+    // Insere os dados recebidos no arquivo de origem para o arquivo de destino.
+    fprintf(destino, "%s %s %.2f\n", transacao.nome, transacao.tipo, transacao.valor);
+  }
+
+  // Fecha os arquivos
+  fclose(origem);
+  fclose(destino);
 
   // Retorna 0 em caso de sucesso.
   return 0;
@@ -223,6 +268,7 @@ void depositar(Cliente cliente)
   fclose(file);
 
   // Envia a resposta de sucesso ao usuário.
+  criarMovimento(cliente, "Deposito", valor);
   enviarTitulo();
   printf("Voce realizou um deposito no valor de R$%.2f com sucesso.\n", valor);
   printf("Seu saldo atualizado: R$%.2f\n\n", cliente.saldo);
@@ -312,6 +358,7 @@ void sacar(Cliente cliente)
   fclose(file);
 
   // Envia resposta ao usuário
+  criarMovimento(cliente, "Saque", valor);
   enviarTitulo();
   printf("Voce realizou um saque no valor de R$%.2f com sucesso.\n", valor);
   printf("Seu saldo atualizado: R$%.2f\n\n", cliente.saldo);
@@ -953,21 +1000,18 @@ void enviarMenuCliente(FILE *file, Cliente cliente)
     // Saques
     case 3:
       // Requisita a função que realiza um saque na conta do cliente.
-      // sacar(cliente);
-      criarMovimento();
+      sacar(cliente);
+
       break;
 
     // Extrato
     case 4:
       // Envia a mensagem para o usuário
       enviarTitulo();
-      printf("Realizando abertura do extrato.\n");
+      printf("Realizando abertura do extrato da sua conta.\n");
       printf("Pressione qualquer tecla para voltar ao menu...\n");
-      file = fopen("extratoteste.txt", "w");
-      // Fecha o arquivo de extrato
-      fclose(file);
+
       // Realiza a abertura do arquivo de extrato.
-      // system("start excel.exe movimentacao.xlsx");
       system("start excel.exe extrato.xlsx");
       getch();
       system("cls");
